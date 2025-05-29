@@ -38,7 +38,8 @@ struct widget
     const char *label;
     const char *type;
     char *param_string;
-    dbc_signal_t *parent_signal;
+    dbc_signal_t **parent_signals;
+    uint32_t num_parent_signals;
     widget_state_t state;
 };
 

@@ -95,7 +95,7 @@ struct dbc_message {
 /* A structure holding a DBC signal type. */
 struct dbc_signal {
     dbc_message_t *parent_message;
-    void **widget_instances;
+    void **widget_instances;   /* This is VOID because of circular dependencies which I don't feel like resolving atm */
     uint8_t num_widget_instances;
     uint32_t vehicle_real_time_data_offset;
     char *name;

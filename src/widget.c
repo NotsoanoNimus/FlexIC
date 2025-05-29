@@ -74,6 +74,100 @@ get_signal_by_name(const char *name, dbc_signal_t **signal_out)
 }
 
 
+static ic_err_t
+update_signal_and_create_widget(uint32_t line_num, char *rel_signal_name, widget_t **widget_ref)
+{
+    if (NULL == rel_signal_name || NULL == widget_ref) return ERR_ARGS;
+
+    dbc_signal_t *related_signal = NULL;
+    ic_err_t status = get_signal_by_name(rel_signal_name, &related_signal);
+    if (ERR_OK != status || NULL == related_signal) {
+        fprintf(
+            stderr,
+            "ERROR:  Configuration(line %u): Could not find signal '%s' (e:%u).\n",
+            line_num, rel_signal_name, status
+        );
+        return ERR_NOT_FOUND;
+    }
+    DPRINTLN("Located signal '%s' at %p.", rel_signal_name, related_signal);
+
+    /* If the widget ref is currently empty, create a new widget. */
+    if (NULL == *widget_ref) {
+        *widget_ref = calloc(1, sizeof(widget_t));
+        if (NULL == *widget_ref) return ERR_OUT_OF_RESOURCES;
+    }
+
+    /* Prepare to attach the widget reference to the signal. */
+    ++related_signal->num_widget_instances;
+
+    /* Widget already has an assigned widget (or more than one). */
+    if (related_signal->num_widget_instances > 1) {
+        if (NULL == related_signal->widget_instances) {
+            fprintf(
+                stderr,
+                "ERROR:  Configuration (line %u, signal %s): There are somehow multiple widget instances, but no buffer to contain them.\n",
+                line_num, rel_signal_name
+            );
+        }
+
+        void **new_instance_list = realloc(
+            related_signal->widget_instances, related_signal->num_widget_instances * sizeof(widget_t *)
+        );
+        related_signal->widget_instances = new_instance_list;
+
+        if (NULL == related_signal->widget_instances) {
+            fprintf(
+                stderr,
+                "ERROR:  Configuration(line %u, signal %s): Could not append widget ref to signal - OOM.\n",
+                line_num, rel_signal_name
+            );
+            return ERR_OUT_OF_RESOURCES;
+        }
+
+        related_signal->widget_instances[related_signal->num_widget_instances - 1] = *widget_ref;
+    } else {
+        related_signal->widget_instances = malloc(sizeof(widget_t *));
+        related_signal->widget_instances[0] = *widget_ref;
+    }
+
+    /* Now, do the inverse for the widget instance. */
+    widget_t *the_widget = *widget_ref;
+    ++the_widget->num_parent_signals;
+
+    /* Widget already has an assigned widget (or more than one). */
+    if (the_widget->num_parent_signals > 1) {
+        if (NULL == the_widget->parent_signals) {
+            fprintf(
+                stderr,
+                "ERROR:  Configuration (line %u, signal %s): There are somehow multiple signal instances, but no buffer to contain them.\n",
+                line_num, rel_signal_name
+            );
+        }
+
+        void **new_instance_list = realloc(
+            the_widget->parent_signals, the_widget->num_parent_signals * sizeof(dbc_signal_t *)
+        );
+        the_widget->parent_signals = (dbc_signal_t **)new_instance_list;
+
+        if (NULL == the_widget->parent_signals) {
+            fprintf(
+                stderr,
+                "ERROR:  Configuration(line %u, signal %s): Could not append signal ref to widget - OOM.\n",
+                line_num, rel_signal_name
+            );
+            return ERR_OUT_OF_RESOURCES;
+        }
+
+        the_widget->parent_signals[the_widget->num_parent_signals - 1] = related_signal;
+    } else {
+        the_widget->parent_signals = malloc(sizeof(widget_t *));
+        the_widget->parent_signals[0] = related_signal;
+    }
+
+    return ERR_OK;
+}
+
+
 ic_err_t
 load_widgets(char *mutable_configuration)
 {
@@ -175,60 +269,26 @@ load_widgets(char *mutable_configuration)
 
         /* Fetch the related signal by name. */
         /* NOTE: This operation might take a while for many signals, but the mapping only needs to be done once. */
-        dbc_signal_t *related_signal = NULL;
-        status = get_signal_by_name(signal_name, &related_signal);
-        if (ERR_OK != status || NULL == related_signal) {
-            fprintf(
-                stderr,
-                "ERROR:  Configuration(line %u): Could not find signal '%s' (e:%u).\n",
-                line_num, signal_name, status
-            );
+        char *rel_signal_name = strtok(signal_name, ":");
+        if (NULL == rel_signal_name) {
+            fprintf(stderr, "ERROR:  Configuration(line %u): Failed to get a valid signal name.\n", line_num);
+            return ERR_INVALID_CONFIGURATION;
+        }
+
+        /* Correlate the widget to its specified signals. Also returns a new widget. */
+        widget_t *new_widget = NULL;
+        do {
+            status = update_signal_and_create_widget(line_num, rel_signal_name, &new_widget);
+            if (ERR_OK != status) return status;
+        } while (NULL != (rel_signal_name = strtok(NULL, ":")));
+
+        if (NULL == new_widget) {
+            fprintf(stderr, "ERROR:  Configuration(line %u): NULL widgets are not permitted.\n", line_num);
             return ERR_NOT_FOUND;
         }
-        DPRINTLN("Located signal '%s' at %p.", signal_name, related_signal);
+        DPRINTLN("widget:  Loaded %u signal references.", new_widget->num_parent_signals);
 
-        /* Prepare to attach a new widget to the signal. */
-        ++related_signal->num_widget_instances;
-
-        /* Widget already has an assigned widget (or more than one). */
-        if (related_signal->num_widget_instances > 1) {
-            if (NULL == related_signal->widget_instances) {
-                fprintf(
-                    stderr,
-                    "ERROR:  Configuration (line %u, signal %s): There are somehow multiple widgets instances, but no buffer to contain them.\n",
-                    line_num, signal_name
-                );
-            }
-
-            void **new_instance_list = realloc(
-                related_signal->widget_instances, related_signal->num_widget_instances * sizeof(widget_t *)
-            );
-            related_signal->widget_instances = new_instance_list;
-
-            if (NULL == related_signal->widget_instances) {
-                fprintf(
-                    stderr,
-                    "ERROR:  Configuration(line %u, signal %s): Could not append widget to Signal array - OOM.\n",
-                    line_num, signal_name
-                );
-                return ERR_OUT_OF_RESOURCES;
-            }
-
-            related_signal->widget_instances[related_signal->num_widget_instances - 1] = calloc(1, sizeof(widget_t));
-        } else {
-            related_signal->widget_instances = malloc(sizeof(widget_t *));
-            related_signal->widget_instances[0] = calloc(1, sizeof(widget_t));
-        }
-
-        /* Now things get more complicated. We've associated the widget to the signal, but now we need to create it.
-            This is also necessarily going to include the custom widget instantiation based on its implementation. */
-        widget_t *new_widget = related_signal->widget_instances[related_signal->num_widget_instances - 1];
-        if (NULL == new_widget) {
-            fprintf(stderr, "ERROR:  Widget instance failed to allocate - OOM.\n");
-            return ERR_OUT_OF_RESOURCES;
-        }
-
-        /* Add the widget instance reference to the flat global list. */
+        /* Add the new (shared) widget instance reference to the flat global list. */
         ++num_global_widgets;
         widget_t **new_global_widgets = realloc(global_widgets, num_global_widgets * sizeof(widget_t *));
         global_widgets = new_global_widgets;
@@ -241,7 +301,6 @@ load_widgets(char *mutable_configuration)
 
         /* Initialize as much as we can before handing control to the factory method for the specific widget type. */
         char *endptr = NULL;
-        new_widget->parent_signal = related_signal;
         new_widget->param_string = strdup(widget_opts);
         new_widget->type = strdup(widget_type);
         new_widget->label = strdup(widget_label);

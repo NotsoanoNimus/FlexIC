@@ -32,7 +32,7 @@ static char *WIDGET_CONFIGURATION =
     (char *)
     "Signal_5060_4,Vehicle Speed,needle_meter,yes,20,20,200,200,2,"
         "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
-    "Signal_5060_4,Vehicle Speed 2,needle_meter,yes,600,100,200,200,1,"
+    "Signal_5060_4:Signal_5060_3,Vehicle Speed 2,needle_meter,yes,600,100,200,200,1,"
         "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
     "aaabcefef,le metric,stepped_bar,yes,320,100,200,200,0,"
         "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60"
