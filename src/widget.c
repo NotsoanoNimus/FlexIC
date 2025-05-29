@@ -316,8 +316,7 @@ load_widgets(char *mutable_configuration)
             if (NULL == widget_factories[i].name || NULL == widget_factories[i].create) continue;
 
             if (__builtin_expect(0 == strcmp(widget_type, widget_factories[i].name), false)) {
-                // TODO: Get the real_time_data_t reference from the associated signal
-                if (ERR_OK != (status = widget_factories[i].create(new_widget, NULL, 0))) {
+                if (ERR_OK != (status = widget_factories[i].create(new_widget))) {
                     fprintf(
                         stderr,
                         "ERROR:  Failed to instantiate widget type '%s' for signal '%s' (e:%u).\n",

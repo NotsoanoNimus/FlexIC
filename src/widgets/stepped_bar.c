@@ -21,11 +21,8 @@ internal__stepped_bar_draw(widget_t *self)
 
 
 static ic_err_t
-internal__stepped_bar_create(
-    widget_t *self,
-    real_time_data_t *real_time_data_reference,
-    uint32_t num_real_time_data_references
-) {
+internal__stepped_bar_create(widget_t *self)
+{
     self->draw = internal__stepped_bar_draw;
 
     return ERR_OK;

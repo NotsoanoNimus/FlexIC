@@ -47,9 +47,7 @@ struct widget
 /* Widget factory prototype for registered widget_types. */
 typedef
 ic_err_t (*func__widget_factory_create)(
-    widget_t *self,
-    real_time_data_t *real_time_data_reference,
-    uint32_t num_real_time_data_references
+    widget_t *self
 );
 
 
