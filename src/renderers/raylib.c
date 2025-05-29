@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 
 /* Raylib-specific rendering methods. */
@@ -68,13 +69,22 @@ raylib_render_loading(const renderer_t *self, volatile vehicle_data_t *current_d
 static void
 raylib_render_loop(const renderer_t *self, volatile vehicle_data_t *current_data)
 {
+    if (0 == num_global_widgets || NULL == global_widgets) {
+        fprintf(stderr, "ERROR: Empty or NULL global_widgets.\n");
+        return;
+    }
+
     while (!WindowShouldClose())
     {
+#if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1
+        clock_t begin = clock();
+#endif   /* IC_DEBUG */
+
         BeginDrawing();
 
-#if IC_OPT_BG_STATIC==1
-        ClearBackground(IC_OPT_BG_TOP_LEFT_RGBA);
-#else   /* IC_OPT_BG_STATIC */
+        ClearBackground((Color)IC_OPT_BG_TOP_LEFT_RGBA);
+
+#if IC_OPT_BG_STATIC!=1
         DrawRectangleGradientEx(
             (Rectangle){
                 .x = 0.0f,
@@ -89,13 +99,17 @@ raylib_render_loop(const renderer_t *self, volatile vehicle_data_t *current_data
         );
 #endif   /* IC_OPT_BG_STATIC */
 
-        if (NULL != global_widgets && num_global_widgets > 0) {
-            for (int i = 0; i < num_global_widgets; ++i) {
-                if (NULL == global_widgets[i]) continue;
+        for (int i = 0; i < num_global_widgets; ++i) {
+            if (NULL == global_widgets[i] || NULL == global_widgets[i]->draw) continue;
 
-                global_widgets[i]->draw(global_widgets[i]);
-            }
+            global_widgets[i]->draw(global_widgets[i]);
         }
+
+#if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1
+        clock_t end = clock();
+        double time = (double)(end - begin) / CLOCKS_PER_SEC;
+        DPRINTLN(">>> Render time: %f (%f millis)", time, time * 1000.0f);
+#endif   /* IC_DEBUG */
 
         EndDrawing();
     }

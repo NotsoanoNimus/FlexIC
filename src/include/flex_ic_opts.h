@@ -51,6 +51,9 @@
 /* GUI screen height */
 #define IC_OPT_SCREEN_HEIGHT 400
 
+/* If set, disables render-time logging, even when IC_DEBUG is on. */
+#define IC_OPT_DISABLE_RENDER_TIME      1
+
 /*
  * No standard library. You should use this if the platform you're running on isn't running
  *  a basic Linux version. BEWARE: you will have to implement all STDLIB calls yourself and

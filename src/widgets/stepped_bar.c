@@ -7,11 +7,14 @@
 #include "widget.h"
 
 
+static int x = 0, y = 0;
 static ic_err_t
 internal__stepped_bar_draw(widget_t *self)
 {
     // TODO: Just an example.
-    DrawRectangle(MY_X, MY_Y, MY_WIDTH, MY_HEIGHT, (Color){ 0x00, 0x00, 0xFF, 0xFF });
+    x = (x + 1) % (GetScreenWidth() - MY_X);
+    y = (y + 2) % (GetScreenHeight() - MY_Y);
+    DrawRectangle(MY_X + x, MY_Y + y, MY_WIDTH, MY_HEIGHT, (Color){ 0x00, 0x00, 0xFF, 0xFF });
 
     return ERR_OK;
 }

@@ -3,3 +3,5 @@ build/
 
 # Memory usage stats tests
 massif.*
+# Core dumps
+vgcore.*
