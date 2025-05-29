@@ -1,1 +1,5 @@
-target/
+.vscode/
+build/
+
+# Memory usage stats tests
+massif.*
