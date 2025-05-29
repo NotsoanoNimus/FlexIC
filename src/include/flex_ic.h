@@ -116,6 +116,9 @@ extern const char *VEHICLE_VERSION;
 extern const unsigned int BUS_SPEED;
 extern dbc_t DBC;
 
+/* Created and managed dynamically by vehicle.c. */
+extern volatile vehicle_data_t *global_vehicle_data;
+
 
 /* Macro to help with DBC Message identification by ID number. */
 #define DBC_MSG_BY_ID(assignee, frame_id) \
