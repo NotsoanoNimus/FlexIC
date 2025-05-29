@@ -99,8 +99,16 @@ struct dbc_signal {
     uint8_t num_widget_instances;
     uint32_t vehicle_real_time_data_offset;
     char *name;
-    // TODO!
-    unit_type_t unit_type;
+    uint32_t start_bit;
+    uint32_t signal_size;
+    bool is_little_endian;
+    bool is_unsigned;
+    uint32_t factor;
+    uint32_t offset;
+    uint32_t minimum_value;
+    uint32_t maximum_value;
+    char *unit_text;
+    unit_type_t parsed_unit_type;
 };
 
 /* Finally, a structure which encapsulates all DBC data. */
