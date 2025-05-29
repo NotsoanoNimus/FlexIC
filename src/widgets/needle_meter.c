@@ -18,7 +18,7 @@ internal__needle_meter_draw(widget_t *self)
 
 
 static ic_err_t
-internal__needle_meter_create(widget_t *self)
+internal__needle_meter_create(widget_t *self, int argc, char **argv)
 {
     self->draw = internal__needle_meter_draw;
 

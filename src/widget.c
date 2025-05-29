@@ -316,7 +316,33 @@ load_widgets(char *mutable_configuration)
             if (NULL == widget_factories[i].name || NULL == widget_factories[i].create) continue;
 
             if (__builtin_expect(0 == strcmp(widget_type, widget_factories[i].name), false)) {
-                if (ERR_OK != (status = widget_factories[i].create(new_widget))) {
+                /* Create the params/args details for the new widget from the options string (delimited by ':'). */
+                int argc = 0;
+                char **argv = NULL;
+
+                char *token = strtok(widget_opts, ":");
+                if (NULL != token) {
+                    argv = malloc(1);   /* placeholder */
+                    if (NULL == argv) return ERR_OUT_OF_RESOURCES;
+
+                    do {
+                        char **temp_argv = realloc(argv, sizeof(char *) * (argc + 1));
+                        if (NULL == temp_argv) return ERR_OUT_OF_RESOURCES;
+                        argv = temp_argv;
+
+                        argv[argc] = strdup(token);
+                        ++argc;
+                    } while (NULL != (token = strtok(NULL, ":")));
+                }
+
+#if IC_DEBUG==1
+                DPRINTLN("Line %u parameters (%u):", line_num, argc);
+                for (int i = 0; i < argc; i++) {
+                    DPRINTLN("\t>>> arg[%02u]:  '%s'", i, argv[i]);
+                }
+#endif   /* IC_DEBUG */
+
+                if (ERR_OK != (status = widget_factories[i].create(new_widget, argc, argv))) {
                     fprintf(
                         stderr,
                         "ERROR:  Failed to instantiate widget type '%s' for signal '%s' (e:%u).\n",

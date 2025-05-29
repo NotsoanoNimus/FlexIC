@@ -3,6 +3,7 @@
 //
 
 #include <raylib.h>
+#include <stdio.h>
 
 #include "widget.h"
 
@@ -21,7 +22,7 @@ internal__stepped_bar_draw(widget_t *self)
 
 
 static ic_err_t
-internal__stepped_bar_create(widget_t *self)
+internal__stepped_bar_create(widget_t *self, int argc, char **argv)
 {
     self->draw = internal__stepped_bar_draw;
 
