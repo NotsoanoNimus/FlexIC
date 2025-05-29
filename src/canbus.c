@@ -178,6 +178,8 @@ process_can_frame(struct canfd_frame *frame, volatile vehicle_data_t *vehicle_da
             message->id, update_status
         );
     }
+
+    // TODO: Trigger vehicle_data updates here by signal instances tied to the message ID.
 }
 
 

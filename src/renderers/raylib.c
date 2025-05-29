@@ -89,9 +89,11 @@ raylib_render_loop(const renderer_t *self, volatile vehicle_data_t *current_data
         );
 #endif   /* IC_OPT_BG_STATIC */
 
-        if (NULL != global_widgets) {
-            for (int i = 0; ; ++i) {
-                if (NULL == global_widgets[i]) break;
+        if (NULL != global_widgets && num_global_widgets > 0) {
+            for (int i = 0; i < num_global_widgets; ++i) {
+                if (NULL == global_widgets[i]) continue;
+
+                global_widgets[i]->draw(global_widgets[i]);
             }
         }
 

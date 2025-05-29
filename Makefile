@@ -16,8 +16,9 @@ SRC_DIR		= src
 INC_DIR		= $(SRC_DIR)/include
 
 WIDGETS_DIR	= $(SRC_DIR)/widgets
-WIDGETS		:= #needle_meter,stepped_bar
+WIDGETS		:= needle_meter,stepped_bar
 WIDGET_SRCS	= $(shell for x in $$(echo "$(WIDGETS)" | tr ',' '\n'); do echo -n "$(WIDGETS_DIR)/$${x}.c "; done)
+WIDGET_FACTORIES	= $(shell i=0; for x in $$(echo "$(WIDGETS)" | tr ',' '\n'); do echo -n "-DWIDGET_FACTORY_$${i}=$${x}_create "; i=$$((i+1)); done)
 
 RENDERER		:= raylib
 RENDERER_SRC	= $(SRC_DIR)/renderers/$(RENDERER).c
@@ -26,7 +27,9 @@ IC_DEBUG	:= 0
 
 
 all: $(BUILD_DIR) $(GEN_DIR) $(WIDGETS_DIR) $(VEHICLE_H) $(VEHICLE_C) $(RENDERER_SRC)
-	$(CC) $(CFLAGS) -DIC_DEBUG=$(IC_DEBUG) -I$(INC_DIR) -I$(GEN_DIR) -o $(TARGET) \
+	$(CC) $(CFLAGS) \
+		-DIC_WIDGETS=\"$(WIDGETS)\" -DIC_DEBUG=$(IC_DEBUG) $(WIDGET_FACTORIES) \
+		-I$(INC_DIR) -I$(GEN_DIR) -o $(TARGET) \
 		$(VEHICLE_C) $(RENDERER_SRC) $(WIDGET_SRCS) $(wildcard $(SRC_DIR)/*.c) \
 		-lpthread -lraylib -lGL -ldl -lm
 

@@ -30,9 +30,11 @@ static volatile vehicle_data_t vehicle_state;
 static char *WIDGET_CONFIGURATION =
 #if IC_OPT_STATIC_CONFIG==1
     (char *)
-    "Signal_5060_4,Vehicle Speed,needle_meter,20,20,200,200,"
+    "Signal_5060_4,Vehicle Speed,needle_meter,yes,20,20,200,200,2,"
         "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
-    "aaabcefef,le metric,bar_meter,20,20,200,200,"
+    "Signal_5060_4,Vehicle Speed 2,needle_meter,yes,600,100,200,200,1,"
+        "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
+    "aaabcefef,le metric,stepped_bar,yes,320,100,200,200,0,"
         "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60"
 #else   /* IC_OPT_STATIC_CONFIG */
     NULL
@@ -46,6 +48,9 @@ static ic_err_t load_config(char **into);
 int
 main(int argc, char **argv)
 {
+    // for (int i = 0; i < 32; ++i)
+    //     printf("#ifdef WIDGET_FACTORY_%u\n    if (%u >= num_widget_factories) return false;\n    extern func__widget_factory_create WIDGET_FACTORY_%u;\n    widget_factories[%u].create = WIDGET_FACTORY_%u;\n#endif   /* WIDGET_FACTORY_%u */\n", i, i, i, i, i, i);
+    // return 0;
     pthread_t can_bus_thread;
     volatile canbus_thread_ctx_t can_bus_ctx;
     ic_err_t status;
