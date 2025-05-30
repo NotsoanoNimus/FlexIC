@@ -393,10 +393,12 @@ init_channel(
     real_time_data_t **out
 ) {
     if (self->num_parent_signals <= channel_number) {
-        fprintf(stderr, "FATAL:  Init'd widget '%s' does not have access to requested channel '%u'."
-            "\n\tThis indicates a configuration problem. Make sure you've assigned all the right signals"
-            "\n\t from your vehicle in the order specified by the widget.\n\n",
-        self->label, channel_number);
+        fprintf(
+            stderr,
+            "\n\nFATAL:  Init'd widget '%s' (type '%s') does not have channel '%u' defined."
+                "\n\tThis indicates a configuration problem. Make sure you've assigned all the right signals"
+                "\n\t from your vehicle in the order specified by the '%s' widget's documentation.\n\n",
+        self->label, self->type, channel_number, self->type);
         exit(EXIT_FAILURE);
     }
     *out = &CHANNEL(channel_number);
