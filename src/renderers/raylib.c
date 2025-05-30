@@ -76,6 +76,11 @@ raylib_render_loop(const renderer_t *self)
         return;
     }
 
+#if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1
+    double clock_samples[IC_OPT_FPS_LIMIT] = {0};
+    int clock_sample_count = 0;
+#endif   /* IC_DEBUG */
+
     while (!WindowShouldClose())
     {
 #if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1
@@ -118,8 +123,19 @@ raylib_render_loop(const renderer_t *self)
 
 #if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1
         clock_t end = clock();
-        double time = (double)(end - begin) / CLOCKS_PER_SEC;
-        DPRINTLN(">>> Render time: %f (%f millis)", time, time * 1000.0f);
+
+        clock_samples[clock_sample_count] = (double)(end - begin) / CLOCKS_PER_SEC;
+        ++clock_sample_count;
+
+        if (IC_OPT_FPS_LIMIT == clock_sample_count) {
+            double time_avg = 0.0f;
+            for (int i = 0; i < IC_OPT_FPS_LIMIT; ++i) time_avg += clock_samples[i];
+            time_avg /= (double)IC_OPT_FPS_LIMIT;
+
+            DPRINTLN(">>> Average render time per frame over 1s: %f (%f millis)", time_avg, time_avg * 1000.0f);
+
+            clock_sample_count = 0;
+        }
 #endif   /* IC_DEBUG */
 
         ClearBackground((Color)IC_OPT_BG_TOP_LEFT_RGBA);
