@@ -13,9 +13,15 @@
 /* Forward declaration. */
 typedef struct widget widget_t;
 
-/* Widget renderer method to update/draw a display item (can be partial). */
+/* Widget renderer method to update a display item (NOT draw components to the renderer). */
 typedef
-ic_err_t (*_func__widget_draw)(
+void (*_func__widget_update)(
+    widget_t *self
+);
+
+/* Widget renderer method to draw a display item inside the renderer loop. */
+typedef
+void (*_func__widget_draw)(
     widget_t *self
 );
 
@@ -33,6 +39,7 @@ struct {
 /* Widget renderer main 'object'. */
 struct widget
 {
+    _func__widget_update    update;
     _func__widget_draw      draw;
 
     const char *label;
@@ -60,7 +67,7 @@ extern uint32_t num_global_widgets;
 ic_err_t load_widgets(char *mutable_configuration);
 
 
-/* Various widget macros to use for shorthand. */
+/* Various widget macros and functions to use for shorthanding or common operations. */
 #define MY_X self->state.position.x
 #define MY_Y self->state.position.y
 #define MY_WIDTH self->state.resolution.x
@@ -68,6 +75,8 @@ ic_err_t load_widgets(char *mutable_configuration);
 #define MY_Z_INDEX self->state.z_index
 
 #define CHANNEL(x) self->parent_signals[(x)]->real_time_data
+
+void init_channel(widget_t *self, int channel_number, real_time_data_t **out);
 
 
 

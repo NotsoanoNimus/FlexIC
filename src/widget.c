@@ -380,9 +380,30 @@ load_widgets(char *mutable_configuration)
     DPRINTLN("global_widgets: Created and populated a flat list of %u widget references.", num_global_widgets);
 
     reorder_widgets_map();
-    DPRINTLN("global_widgets: Re-ordered based on descending Z-INDEX.");
+    DPRINTLN("global_widgets: Re-ordered based on ascending Z-INDEX.");
 
     return ERR_OK;
+}
+
+
+void
+init_channel(
+    widget_t *self,
+    int channel_number,
+    real_time_data_t **out
+) {
+    if (self->num_parent_signals <= channel_number) {
+        fprintf(stderr, "FATAL:  Init'd widget '%s' does not have access to requested channel '%u'."
+            "\n\tThis indicates a configuration problem. Make sure you've assigned all the right signals"
+            "\n\t from your vehicle in the order specified by the widget.\n\n",
+        self->label, channel_number);
+        exit(EXIT_FAILURE);
+    }
+    *out = &CHANNEL(channel_number);
+    DPRINTLN(
+        "[%s] Initialized CHANNEL%u on signal '%s'.",
+        self->label, channel_number, self->parent_signals[channel_number]->name
+    );
 }
 
 
