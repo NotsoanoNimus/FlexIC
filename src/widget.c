@@ -407,7 +407,7 @@ reorder_widgets_map(void)
     for (int i = 0; i < num_global_widgets; ++i) {
         printf("%u ", global_widgets[i]->state.z_index);
     }
-    DPRINT("\n");
+    printf("\n");
 #endif   /* IC_DEBUG */
 }
 

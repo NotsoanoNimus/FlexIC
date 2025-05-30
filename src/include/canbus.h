@@ -15,7 +15,6 @@ typedef
 struct {
     const char *can_if_name;
     volatile ic_err_t thread_status;
-    volatile vehicle_data_t *vehicle_data;
     volatile bool is_listening;
     volatile bool should_close;
 } canbus_thread_ctx_t;

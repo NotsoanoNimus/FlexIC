@@ -2,6 +2,8 @@
 // Created by puhlz on 5/28/25.
 //
 
+#include <pthread.h>
+
 #include "renderer.h"
 #include "widget.h"
 
@@ -103,6 +105,15 @@ raylib_render_loop(const renderer_t *self, volatile vehicle_data_t *current_data
             if (NULL == global_widgets[i] || NULL == global_widgets[i]->draw) continue;
 
             global_widgets[i]->draw(global_widgets[i]);
+        }
+
+        /* After drawing all widgets, clear all 'has_update' flags. This will require an atomic operation... */
+        for (int i = 0; i < DBC_SIGNALS_LEN; ++i) {
+            if (!DBC.signals[i].real_time_data.has_update) continue;
+
+            pthread_mutex_lock(&DBC.signals[i].real_time_data.lock);
+            DBC.signals[i].real_time_data.has_update = false;
+            pthread_mutex_unlock(&DBC.signals[i].real_time_data.lock);
         }
 
 #if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1

@@ -17,10 +17,6 @@
 #include <string.h>
 
 
-/* R/W in the CAN thread. R/O in the render thread. */
-static volatile vehicle_data_t vehicle_state;
-
-
 /*
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  * HEY! The configuration parser is quite sensitive.
@@ -65,7 +61,6 @@ main(int argc, char **argv)
         .thread_status = ERR_OK,
         .should_close = false,
         .is_listening = false,
-        .vehicle_data = &vehicle_state,
         .can_if_name = "vcan0"  // TODO! params
     };
 
@@ -99,13 +94,13 @@ main(int argc, char **argv)
     }
 
     /* Set up and enter the main rendering loop. */
-    if (ERR_OK != global_renderer->init(global_renderer, &vehicle_state)) {
+    if (ERR_OK != global_renderer->init(global_renderer, NULL)) {
         fprintf(stderr, "ERROR:  Failed to initialize the IC renderer.\n");
         exit(EXIT_FAILURE);
     }
 
-    global_renderer->loading(global_renderer, &vehicle_state);   /* flashes an intro sequence from the renderer */
-    global_renderer->loop(global_renderer, &vehicle_state);   /* noreturn; unless application exit condition */
+    global_renderer->loading(global_renderer, NULL);   /* flashes an intro sequence from the renderer */
+    global_renderer->loop(global_renderer, NULL);   /* noreturn; unless application exit condition */
 
     /* Always wait for the listener to close, if the code reaches these statements. */
     // fprintf(stdout, "Waiting on the CAN socket to close.\n    If this takes too long, just force-close the application...\n");

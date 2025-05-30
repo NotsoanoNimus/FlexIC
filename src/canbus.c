@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <errno.h>
+#include <pthread.h>
 #include <string.h>
 #include <stdio.h>
 #include <net/if.h>
@@ -20,7 +21,7 @@
 
 
 static void
-process_can_frame(struct canfd_frame *frame, volatile vehicle_data_t *vehicle_data);
+process_can_frame(struct canfd_frame *frame);
 
 
 #if IC_OPT_ID_MAPPING==1
@@ -46,10 +47,10 @@ void *
 canbus_listener(void *context)
 {
     int s_fd;   /* CAN socket file descriptor. */
-    struct sockaddr_can address;
+    struct sockaddr_can address = {0};
     struct ifreq ifr;
-    struct canfd_frame frame;
-    ssize_t num_bytes;
+    struct canfd_frame frame = {0};
+    ssize_t num_bytes = 0;
     canbus_thread_ctx_t *ctx;
     ic_err_t create_map_response;
 
@@ -96,7 +97,7 @@ canbus_listener(void *context)
     ctx->is_listening = true;
 
     /* Main recv loop. */
-    while (1)
+    while (true)
     {
         if (true == ctx->should_close) {
             ctx->thread_status = ERR_CAN_CLOSED;
@@ -112,7 +113,7 @@ canbus_listener(void *context)
         }
 
         if (
-            num_bytes < 9   /* minimum size of at least the prelude of a CAN FD message, plus 1 byte */
+            num_bytes < 9   /* minimum size of at least the prelude of a CAN message, plus 1 byte */
             || num_bytes < 8 + frame.len   /* If we do have a len, needs to match what was received */
         ) {
             fprintf(stderr, "Hmm. Received an incomplete CAN frame. Skipping.\n");
@@ -120,10 +121,10 @@ canbus_listener(void *context)
         }
 
         DPRINTLN("Received CAN frame with ID 0x%X.", frame.can_id);
-        DPRINT("Data: "); MEMDUMP(frame.data, frame.len); printf("\n");
+        DPRINT("Data: "); MEMDUMP(frame.data, frame.len); DPRINT("\n");
 
         /* Now do something with the CAN frame. */
-        process_can_frame(&frame, ctx->vehicle_data);
+        process_can_frame(&frame);
     }
 
     close(s_fd);
@@ -149,10 +150,9 @@ canbus_status(const ic_err_t status)
 
 
 static void
-process_can_frame(struct canfd_frame *frame, volatile vehicle_data_t *vehicle_data)
+process_can_frame(struct canfd_frame *frame)
 {
     const dbc_message_t *message = NULL;
-    ic_err_t update_status = ERR_OK;
 
     if (NULL == frame) return;
 
@@ -168,18 +168,19 @@ process_can_frame(struct canfd_frame *frame, volatile vehicle_data_t *vehicle_da
 
     DPRINTLN("INFO:  Received CAN message '%s'", message->name);
 
-    /* Call the message's update hook to update vehicle data. */
-    // TODO: Should something be done with the returned ic_err_t status here?
-    update_status = message->update(message, vehicle_data);
-    if (ERR_OK != update_status) {
-        fprintf(
-            stderr,
-            "ERROR:  Value update from MsgID 0x%X failed (e:%u). Aborting.\n",
-            message->id, update_status
-        );
-    }
+    // TODO: Need to detect multiplexor signals that might be part of this message.
+    //    This should only update the rtd if the signal is associated with the current multiplexor channel.
+    //    Hence, all signals outside the current multiplexor channel must be ignored.
+    for (int i = 0; i < message->num_signals; ++i) {
+        real_time_data_t *rtd = &(message->signals[i]->real_time_data);
 
-    // TODO: Trigger vehicle_data updates here by signal instances tied to the message ID.
+        pthread_mutex_lock(&rtd->lock);
+        memset(rtd->data, 0x00, SIGNAL_REAL_TIME_DATA_BUFFER_SIZE);
+        memcpy(rtd->data, frame->data, frame->len);
+
+        rtd->has_update = true;
+        pthread_mutex_unlock(&rtd->lock);
+    }
 }
 
 

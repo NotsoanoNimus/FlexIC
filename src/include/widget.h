@@ -67,12 +67,7 @@ ic_err_t load_widgets(char *mutable_configuration);
 #define MY_HEIGHT self->state.resolution.y
 #define MY_Z_INDEX self->state.z_index
 
-/* Direct pointer to real-time data from the vehicle through the numbered signal channel. */
-#define P_RTD(channel) \
-    (real_time_data_t *)( \
-        (size_t)global_vehicle_data + \
-        (size_t)(self->parent_signals[channel]->vehicle_real_time_data_offset * sizeof(real_time_data_t)) \
-    )
+#define CHANNEL(x) self->parent_signals[(x)]->real_time_data
 
 
 

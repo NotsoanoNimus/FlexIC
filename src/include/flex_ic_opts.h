@@ -54,6 +54,14 @@
 /* If set, disables render-time logging, even when IC_DEBUG is on. */
 #define IC_OPT_DISABLE_RENDER_TIME      1
 
+
+/*
+ * Whether to enable support for CAN FD or Extended (64-byte) data packets.
+ *  Note that CAN buses which aren't sending frames with data over 8 bytes in
+ *  length will be WASTING RAM if this option is enabled.
+ */
+#define IC_OPT_CAN_FD_EXTENDED      0
+
 /*
  * No standard library. You should use this if the platform you're running on isn't running
  *  a basic Linux version. BEWARE: you will have to implement all STDLIB calls yourself and
