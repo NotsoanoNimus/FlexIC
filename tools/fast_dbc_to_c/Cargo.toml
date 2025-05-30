@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 can-dbc = "6.0.0"
+yes-or-no = "0.1.1"
