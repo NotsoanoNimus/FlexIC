@@ -54,6 +54,9 @@
 /* If set, disables render-time logging, even when IC_DEBUG is on. */
 #define IC_OPT_DISABLE_RENDER_TIME      1
 
+/* If set, disables received CAN message logging, even when IC_DEBUG is on. */
+#define IC_OPT_DISABLE_CAN_DETAILS      1
+
 
 /*
  * Whether to enable support for CAN FD or Extended (64-byte) data packets.

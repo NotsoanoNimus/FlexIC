@@ -119,9 +119,10 @@ canbus_listener(void *context)
             fprintf(stderr, "Hmm. Received an incomplete CAN frame. Skipping.\n");
             continue;
         }
-
+#if IC_OPT_DISABLE_CAN_DETAILS!=1
         DPRINTLN("Received CAN frame with ID 0x%X.", frame.can_id);
-        DPRINT("Data: "); MEMDUMP(frame.data, frame.len); DPRINT("\n");
+        DPRINT("Data: "); MEMDUMP(frame.data, frame.len);
+#endif   /* IC_OPT_DISABLE_CAN_DETAILS */
 
         /* Now do something with the CAN frame. */
         process_can_frame(&frame);
@@ -162,11 +163,14 @@ process_can_frame(struct canfd_frame *frame)
     DBC_MSG_BY_ID(message, frame->can_id);
     if (NULL == message) {
 #endif   /* IC_OPT_ID_MAPPING */
+#if IC_OPT_DISABLE_CAN_DETAILS!=1
         DPRINTLN(">>> WARNING: Unknown or invalid CAN ID: 0x%X. Skipped.", frame->can_id);
+#endif   /* IC_OPT_DISABLE_CAN_DETAILS */
         return;
     }
-
+#if IC_OPT_DISABLE_CAN_DETAILS!=1
     DPRINTLN("INFO:  Received CAN message '%s'", message->name);
+#endif   /* IC_OPT_DISABLE_CAN_DETAILS */
 
     // TODO: Need to detect multiplexor signals that might be part of this message.
     //    This should only update the rtd if the signal is associated with the current multiplexor channel.
