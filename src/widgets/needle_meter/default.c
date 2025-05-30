@@ -108,3 +108,10 @@ needle_meter__default__draw(widget_t *self)
 {
     internal__render_basic_tachometer();
 }
+
+
+static ic_err_t
+needle_meter__default__parse_args(widget_t *self)
+{
+    return ERR_OK;
+}

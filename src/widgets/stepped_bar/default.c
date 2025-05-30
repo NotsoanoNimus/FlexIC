@@ -21,3 +21,10 @@ stepped_bar__default__draw(widget_t *self)
     // TODO: Just an example.
     DrawRectangle(MY_X, MY_Y, MY_WIDTH, MY_HEIGHT, (Color){ 0x00, 0x00, 0xFF, 0xFF });
 }
+
+
+static ic_err_t
+stepped_bar__default__parse_args(widget_t *self)
+{
+    return ERR_OK;
+}

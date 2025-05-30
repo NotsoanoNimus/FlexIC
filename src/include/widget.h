@@ -13,6 +13,14 @@
 /* Forward declaration. */
 typedef struct widget widget_t;
 
+/* Widget one-time hook to parse widget_opts into usable per-skin features/options.
+    NOTE: we try to enforce this as a one-time method because it's called implicitly during
+    skin setup, a la 'set_hooks_for_skin' */
+typedef
+ic_err_t (*_func__widget_parse_args)(
+    widget_t *self
+);
+
 /* Widget renderer method to update a display item (NOT draw components to the renderer). */
 typedef
 void (*_func__widget_update)(
@@ -39,8 +47,8 @@ struct {
 /* Widget renderer main 'object'. */
 struct widget
 {
-    _func__widget_update    update;
-    _func__widget_draw      draw;
+    _func__widget_update        update;
+    _func__widget_draw          draw;
 
     const char *label;
     const char *type;
@@ -79,7 +87,13 @@ extern const char *widget_default_skin_name;
 #define DEFAULT_SKIN widget_default_skin_name
 
 #define REGISTER_SKIN(widget, name) \
-    set_hooks_for_skin(self, AS_LITERAL(name), widget##__##name##__update, widget##__##name##__draw);
+    set_hooks_for_skin( \
+        self, \
+        AS_LITERAL(name), \
+        widget##__##name##__update, \
+        widget##__##name##__draw, \
+        widget##__##name##__parse_args \
+    );
 
 #define CHANNEL(x) self->parent_signals[(x)]->real_time_data
 
@@ -89,7 +103,8 @@ void set_hooks_for_skin(
     widget_t *self,
     const char *skin_name,
     _func__widget_update update_hook,
-    _func__widget_draw draw_hook
+    _func__widget_draw draw_hook,
+    _func__widget_parse_args parse_args_hook
 );
 
 

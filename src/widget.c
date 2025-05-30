@@ -425,12 +425,24 @@ set_hooks_for_skin(
     widget_t *self,
     const char *skin_name,
     _func__widget_update update_hook,
-    _func__widget_draw draw_hook
+    _func__widget_draw draw_hook,
+    _func__widget_parse_args parse_args_hook
 ) {
     if (0 != strcasecmp(skin_name, self->skin_name)) return;
 
     self->draw = draw_hook;
     self->update = update_hook;
+
+    /* Parse skin-specific arguments/options. */
+    ic_err_t args_status = ERR_OK;
+    if (ERR_OK != (args_status = parse_args_hook(self))) {
+        fprintf(
+            stderr,
+            "FATAL: widget(%s, %s): Failed to process widget_opts string according to skin requirements (e:%u).\n",
+            self->label, self->type, args_status
+        );
+        exit(EXIT_FAILURE);
+    }
 }
 
 

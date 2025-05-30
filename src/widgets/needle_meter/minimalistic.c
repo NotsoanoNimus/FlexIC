@@ -24,3 +24,10 @@ needle_meter__minimalistic__draw(widget_t *self)
 {
     DrawEllipse(300, 300, 20, 80, RAYWHITE);
 }
+
+
+static ic_err_t
+needle_meter__minimalistic__parse_args(widget_t *self)
+{
+    return ERR_OK;
+}
