@@ -272,7 +272,7 @@ load_widgets(char *mutable_configuration)
         char *skin_name = strtok(widget_type, ":");
         skin_name = strtok(NULL, ":");
         if (NULL == skin_name) {
-            skin_name = DEFAULT_SKIN;
+            skin_name = (char *)DEFAULT_SKIN;
         }
         CONF_SUMMARIZE(skin_name);
         DPRINT("\n");

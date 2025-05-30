@@ -12,9 +12,7 @@
 static ic_err_t
 internal__needle_meter_create(widget_t *self, int argc, char **argv)
 {
-    self->update = needle_meter__default__update;
-    self->draw = needle_meter__default__draw;
-
+    REGISTER_SKIN(needle_meter, default);
     REGISTER_SKIN(needle_meter, minimalistic);
 
     return ERR_OK;
