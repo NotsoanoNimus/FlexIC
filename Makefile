@@ -7,6 +7,7 @@ DBC_FILE	:= dbc/$(VEHICLE).dbc
 
 BUILD_DIR	= build
 GEN_DIR		= $(BUILD_DIR)/gen
+GEN_PROJ_DIR= ./tools/fast_dbc_to_c
 VEHICLE_H	= $(GEN_DIR)/vehicle.h
 VEHICLE_C	= $(GEN_DIR)/vehicle.c
 
@@ -26,6 +27,8 @@ RENDERER_LIBS	:= -lraylib -lGL -ldl -lm
 
 IC_DEBUG	:= 0
 
+.PHONY: all debug dbc
+
 
 all: $(BUILD_DIR) $(GEN_DIR) $(WIDGETS_DIR) $(VEHICLE_H) $(VEHICLE_C) $(RENDERER_SRC)
 	$(CC) $(CFLAGS) \
@@ -36,6 +39,16 @@ all: $(BUILD_DIR) $(GEN_DIR) $(WIDGETS_DIR) $(VEHICLE_H) $(VEHICLE_C) $(RENDERER
 
 debug: IC_DEBUG=1
 debug: all
+
+clean:
+	-@rm -rf $(BUILD_DIR)
+
+dbc:
+ifeq ($(DBC),)
+	$(error You need to specify a full path to a DBC file; e.g. "make all DBC=`pwd`/dbc/my_car.dbc")
+endif
+	$(shell ( T_PWD=$(shell pwd) && >&2 cd $(GEN_PROJ_DIR) && >&2 cargo run "$(DBC)" "$${T_PWD}/build/gen" yes ) \
+		|| { echo >&2 ERROR: Failed to run cargo generation. && kill $$PPID; })
 
 $(BUILD_DIR):
 	-@mkdir -p $(BUILD_DIR) &>/dev/null
@@ -48,4 +61,5 @@ $(WIDGETS_DIR):
 
 $(VEHICLE_H):
 $(VEHICLE_C):
-	$(error "You need to compile a DBC file for your specific vehicle. Please refer to the FlexIC documentation.")
+	$(info You need to use the source generator with a DBC file first. Trying that...)
+	@$(MAKE) dbc

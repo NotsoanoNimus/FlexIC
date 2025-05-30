@@ -1,6 +1,8 @@
 .vscode/
 build/
 
+**/.idea
+
 # Memory usage stats tests
 massif.*
 # Core dumps
