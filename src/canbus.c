@@ -179,8 +179,8 @@ process_can_frame(struct canfd_frame *frame)
         real_time_data_t *rtd = &(message->signals[i]->real_time_data);
 
         pthread_mutex_lock(&rtd->lock);
-        memset(rtd->data, 0x00, SIGNAL_REAL_TIME_DATA_BUFFER_SIZE);
-        memcpy(rtd->data, frame->data, frame->len);
+        memset((void *)rtd->data, 0x00, SIGNAL_REAL_TIME_DATA_BUFFER_SIZE);
+        memcpy((void *)rtd->data, frame->data, frame->len);
 
         rtd->has_update = true;
         pthread_mutex_unlock(&rtd->lock);
