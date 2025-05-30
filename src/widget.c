@@ -311,7 +311,6 @@ load_widgets(char *mutable_configuration)
 
         /* Initialize as much as we can before handing control to the factory method for the specific widget type. */
         char *endptr = NULL;
-        new_widget->param_string = strdup(widget_opts);
         new_widget->type = strdup(widget_type);
         new_widget->label = strdup(widget_label);
         new_widget->skin_name = strdup(skin_name);
@@ -324,46 +323,49 @@ load_widgets(char *mutable_configuration)
         /* Locate the factory method for the widget_type. */
         bool created = false;
         for (int i = 0; i < num_widget_factories; ++i) {
-            if (NULL == widget_factories[i].name || NULL == widget_factories[i].create) continue;
+            if (__builtin_expect(NULL == widget_factories[i].name || NULL == widget_factories[i].create, false)) continue;
 
-            if (__builtin_expect(0 == strcmp(widget_type, widget_factories[i].name), false)) {
-                /* Create the params/args details for the new widget from the options string (delimited by ':'). */
-                int argc = 0;
-                char **argv = NULL;
+            if (__builtin_expect(0 != strcmp(widget_type, widget_factories[i].name), true)) continue;
 
-                char *token = strtok(widget_opts, ":");
-                if (NULL != token) {
-                    argv = malloc(1);   /* placeholder */
-                    if (NULL == argv) return ERR_OUT_OF_RESOURCES;
+            /* Create the params/args details for the new widget from the options string (delimited by ':'). */
+            int argc = 0;
+            char **argv = NULL;
 
-                    do {
-                        char **temp_argv = realloc(argv, sizeof(char *) * (argc + 1));
-                        if (NULL == temp_argv) return ERR_OUT_OF_RESOURCES;
-                        argv = temp_argv;
+            char *token = strtok(widget_opts, ":");
+            if (NULL != token) {
+                argv = malloc(1);   /* placeholder */
+                if (NULL == argv) return ERR_OUT_OF_RESOURCES;
 
-                        argv[argc] = strdup(token);
-                        ++argc;
-                    } while (NULL != (token = strtok(NULL, ":")));
-                }
+                do {
+                    char **temp_argv = realloc(argv, sizeof(char *) * (argc + 1));
+                    if (NULL == temp_argv) return ERR_OUT_OF_RESOURCES;
+                    argv = temp_argv;
+
+                    argv[argc] = strdup(token);
+                    ++argc;
+                } while (NULL != (token = strtok(NULL, ":")));
+            }
+
+            new_widget->argc = argc;
+            new_widget->argv = argv;
 
 #if IC_DEBUG==1
-                DPRINTLN("Line %u parameters (%u):", line_num, argc);
-                for (int i = 0; i < argc; i++) {
-                    DPRINTLN("\t>>> arg[%02u]:  '%s'", i, argv[i]);
-                }
+            DPRINTLN("Line %u parameters (%u):", line_num, argc);
+            for (int i = 0; i < argc; i++) {
+                DPRINTLN("\t>>> arg[%02u]:  '%s'", i, argv[i]);
+            }
 #endif   /* IC_DEBUG */
 
-                if (ERR_OK != (status = widget_factories[i].create(new_widget, argc, argv))) {
-                    fprintf(
-                        stderr,
-                        "ERROR:  Failed to instantiate widget type '%s' for signal '%s' (e:%u).\n",
-                        widget_type, signal_name, status
-                    );
-                    return status;
-                }
-                created = true;
-                break;
+            if (ERR_OK != (status = widget_factories[i].create(new_widget))) {
+                fprintf(
+                    stderr,
+                    "ERROR:  Failed to instantiate widget type '%s' for signal '%s' (e:%u).\n",
+                    widget_type, signal_name, status
+                );
+                return status;
             }
+            created = true;
+            break;
         }
 
         if (!created) {

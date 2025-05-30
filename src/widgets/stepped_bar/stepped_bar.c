@@ -9,7 +9,7 @@
 
 
 static ic_err_t
-internal__stepped_bar_create(widget_t *self, int argc, char **argv)
+internal__stepped_bar_create(widget_t *self)
 {
     REGISTER_SKIN(stepped_bar, default)
 

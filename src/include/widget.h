@@ -52,7 +52,8 @@ struct widget
 
     const char *label;
     const char *type;
-    char *param_string;
+    int argc;
+    char **argv;
     char *skin_name;
     dbc_signal_t **parent_signals;
     uint32_t num_parent_signals;
@@ -63,9 +64,7 @@ struct widget
 /* Widget factory prototype for registered widget_types. */
 typedef
 ic_err_t (*func__widget_factory_create)(
-    widget_t *self,
-    int argc,
-    char **argv
+    widget_t *self
 );
 
 

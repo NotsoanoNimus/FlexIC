@@ -10,10 +10,12 @@
 
 
 static ic_err_t
-internal__needle_meter_create(widget_t *self, int argc, char **argv)
+internal__needle_meter_create(widget_t *self)
 {
     REGISTER_SKIN(needle_meter, default);
     REGISTER_SKIN(needle_meter, minimalistic);
+
+    init_channel(self, 0, &needle_data);
 
     return ERR_OK;
 }
