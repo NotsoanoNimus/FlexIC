@@ -1,13 +1,8 @@
-//
-// Created by puhlz on 5/29/25.
-//
+#include "widget.h"
 
 #include <math.h>
 #include <raylib.h>
 #include <stdio.h>
-
-#include "widget.h"
-
 
 
 int ScreenW = 0;
@@ -91,7 +86,7 @@ internal__render_basic_tachometer()
 
 
 static void
-internal__needle_meter_update(widget_t *self)
+needle_meter__default__update(widget_t *self)
 {
     // TODO: Testing. Remove.
     for (int i = 0; i < self->num_parent_signals; ++i) {
@@ -109,19 +104,7 @@ internal__needle_meter_update(widget_t *self)
 
 
 static void
-internal__needle_meter_draw(widget_t *self)
+needle_meter__default__draw(widget_t *self)
 {
     internal__render_basic_tachometer();
 }
-
-
-static ic_err_t
-internal__needle_meter_create(widget_t *self, int argc, char **argv)
-{
-    self->update = internal__needle_meter_update;
-    self->draw = internal__needle_meter_draw;
-
-    return ERR_OK;
-}
-
-func__widget_factory_create needle_meter_create = internal__needle_meter_create;

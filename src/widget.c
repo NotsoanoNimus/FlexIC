@@ -33,6 +33,8 @@
 widget_t **global_widgets = NULL;
 uint32_t num_global_widgets = 0;
 
+const char *widget_default_skin_name = "default";
+
 /* Local only to this source file. */
 #define MAX_REGISTRATIONS       32
 
@@ -220,8 +222,8 @@ load_widgets(char *mutable_configuration)
      *  Widgets are specifically tied to signals by name. An example configuration line might show:
      *          Signal_5060_4,Vehicle Speed,needle_meter,true,20,20,200,200,0,
      *              180:-50:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60
-     *      SIGNAL_NAME,WIDGET_LABEL,WIDGET_TYPE,VISIBLE,X,Y,W,H,Z-INDEX,WIDGET_OPTS (specific to each widget)
-     *      In the case of the needle meter, we have...
+     *      SIGNAL_NAME(S),WIDGET_LABEL,WIDGET_TYPE[:SKIN],VISIBLE,X,Y,W,H,Z-INDEX,WIDGET_OPTS (specific to each widget)
+     *      In the case of the needle meter's default skin, we have...
      *          DEGREES:TILT_DEGREES:MIN:MAX:INTERVAL:SUB_INTERVAL:FONT_SIZE:FONT_TYPE:NEEDLE_TYPE:BEZEL_TYPE\
      *              :NEEDLE_PERC:NEEDLE_RGBA:BEZEL_RGBA:NUMBERS_RGBA:UNIT_LABEL:LABEL_OFFSET(X:Y)
      *      These custom properties are documented in the FlexIC project, or in the respective widget source.
@@ -265,6 +267,14 @@ load_widgets(char *mutable_configuration)
         CONF_SUMMARIZE(height);
         CONF_SUMMARIZE(z_index);
         CONF_SUMMARIZE(widget_opts);
+
+        /* Quickly get the skin name, if defined. */
+        char *skin_name = strtok(widget_type, ":");
+        skin_name = strtok(NULL, ":");
+        if (NULL == skin_name) {
+            skin_name = DEFAULT_SKIN;
+        }
+        CONF_SUMMARIZE(skin_name);
         DPRINT("\n");
 
         /* Fetch the related signal by name. */
@@ -304,6 +314,7 @@ load_widgets(char *mutable_configuration)
         new_widget->param_string = strdup(widget_opts);
         new_widget->type = strdup(widget_type);
         new_widget->label = strdup(widget_label);
+        new_widget->skin_name = strdup(skin_name);
         new_widget->state.resolution.x = (int)strtol(width, &endptr, 10);   CHECK_STRTOL(width);
         new_widget->state.resolution.y = (int)strtol(height, &endptr, 10);  CHECK_STRTOL(height);
         new_widget->state.position.x = (int)strtol(x_pos, &endptr, 10);     CHECK_STRTOL(x_pos);
@@ -406,6 +417,20 @@ init_channel(
         "[%s] Initialized CHANNEL%u on signal '%s'.",
         self->label, channel_number, self->parent_signals[channel_number]->name
     );
+}
+
+
+void
+set_hooks_for_skin(
+    widget_t *self,
+    const char *skin_name,
+    _func__widget_update update_hook,
+    _func__widget_draw draw_hook
+) {
+    if (0 != strcasecmp(skin_name, self->skin_name)) return;
+
+    self->draw = draw_hook;
+    self->update = update_hook;
 }
 
 

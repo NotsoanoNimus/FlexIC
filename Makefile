@@ -17,7 +17,7 @@ INC_DIR		= $(SRC_DIR)/include
 
 WIDGETS_DIR	= $(SRC_DIR)/widgets
 WIDGETS		:= needle_meter,stepped_bar
-WIDGET_SRCS	= $(shell for x in $$(echo "$(WIDGETS)" | tr ',' '\n'); do echo -n "$(WIDGETS_DIR)/$${x}.c "; done)
+WIDGET_SRCS	= $(shell for x in $$(echo "$(WIDGETS)" | tr ',' '\n'); do echo -n "$(WIDGETS_DIR)/$${x}/$${x}.c "; done)
 WIDGET_FACTORIES	= $(shell i=0; for x in $$(echo "$(WIDGETS)" | tr ',' '\n'); do echo -n "-DWIDGET_FACTORY_$${i}=$${x}_create "; i=$$((i+1)); done)
 
 RENDERER		:= raylib

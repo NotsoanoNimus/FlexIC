@@ -45,6 +45,7 @@ struct widget
     const char *label;
     const char *type;
     char *param_string;
+    char *skin_name;
     dbc_signal_t **parent_signals;
     uint32_t num_parent_signals;
     widget_state_t state;
@@ -74,9 +75,22 @@ ic_err_t load_widgets(char *mutable_configuration);
 #define MY_HEIGHT self->state.resolution.y
 #define MY_Z_INDEX self->state.z_index
 
+extern const char *widget_default_skin_name;
+#define DEFAULT_SKIN widget_default_skin_name
+
+#define REGISTER_SKIN(widget, name) \
+    set_hooks_for_skin(self, AS_LITERAL(name), widget##__##name##__update, widget##__##name##__draw);
+
 #define CHANNEL(x) self->parent_signals[(x)]->real_time_data
 
 void init_channel(widget_t *self, int channel_number, real_time_data_t **out);
+
+void set_hooks_for_skin(
+    widget_t *self,
+    const char *skin_name,
+    _func__widget_update update_hook,
+    _func__widget_draw draw_hook
+);
 
 
 
