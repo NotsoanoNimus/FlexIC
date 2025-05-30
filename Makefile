@@ -22,6 +22,7 @@ WIDGET_FACTORIES	= $(shell i=0; for x in $$(echo "$(WIDGETS)" | tr ',' '\n'); do
 
 RENDERER		:= raylib
 RENDERER_SRC	= $(SRC_DIR)/renderers/$(RENDERER).c
+RENDERER_LIBS	:= -lraylib -lGL -ldl -lm
 
 IC_DEBUG	:= 0
 
@@ -31,7 +32,7 @@ all: $(BUILD_DIR) $(GEN_DIR) $(WIDGETS_DIR) $(VEHICLE_H) $(VEHICLE_C) $(RENDERER
 		-DIC_WIDGETS=\"$(WIDGETS)\" -DIC_DEBUG=$(IC_DEBUG) $(WIDGET_FACTORIES) \
 		-I$(INC_DIR) -I$(GEN_DIR) -o $(TARGET) \
 		$(VEHICLE_C) $(RENDERER_SRC) $(WIDGET_SRCS) $(wildcard $(SRC_DIR)/*.c) \
-		-lpthread -lraylib -lGL -ldl -lm
+		-lpthread $(RENDERER_LIBS)
 
 debug: IC_DEBUG=1
 debug: all
