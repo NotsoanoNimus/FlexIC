@@ -22,20 +22,17 @@ typedef struct renderer renderer_t;
 
 typedef
 ic_err_t (*_func__renderer_init)(
-    const renderer_t *self,
-    volatile vehicle_data_t *current_data
+    const renderer_t *self
 );
 
 typedef
 void (*_func__renderer_loading)(
-    const renderer_t *self,
-    volatile vehicle_data_t *current_data
+    const renderer_t *self
 );
 
 typedef
 void (*_func__renderer_loop)(
-    const renderer_t *self,
-    volatile vehicle_data_t *current_data
+    const renderer_t *self
 );
 
 

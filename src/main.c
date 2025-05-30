@@ -26,11 +26,11 @@
 static char *WIDGET_CONFIGURATION =
 #if IC_OPT_STATIC_CONFIG==1
     (char *)
-    "Signal_5060_4,Vehicle Speed,needle_meter,yes,20,20,200,200,2,"
+    "ICSim_Speed,Vehicle Speed,needle_meter,yes,20,20,200,200,2,"
         "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
-    "Signal_5060_4:Signal_5060_3,Vehicle Speed 2,needle_meter,yes,600,100,200,200,1,"
-        "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
-    "aaabcefef,le metric,stepped_bar,yes,320,100,200,200,0,"
+    // "Signal_5060_4:Signal_5060_3,Vehicle Speed 2,needle_meter,yes,600,100,200,200,1,"
+    //     "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
+    "aaabcefef,le metric,stepped_bar,yes,320,100,200,200,3,"
         "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60"
 #else   /* IC_OPT_STATIC_CONFIG */
     NULL
@@ -94,13 +94,13 @@ main(int argc, char **argv)
     }
 
     /* Set up and enter the main rendering loop. */
-    if (ERR_OK != global_renderer->init(global_renderer, NULL)) {
+    if (ERR_OK != global_renderer->init(global_renderer)) {
         fprintf(stderr, "ERROR:  Failed to initialize the IC renderer.\n");
         exit(EXIT_FAILURE);
     }
 
-    global_renderer->loading(global_renderer, NULL);   /* flashes an intro sequence from the renderer */
-    global_renderer->loop(global_renderer, NULL);   /* noreturn; unless application exit condition */
+    global_renderer->loading(global_renderer);   /* flashes an intro sequence from the renderer */
+    global_renderer->loop(global_renderer);   /* noreturn; unless application exit condition */
 
     /* Always wait for the listener to close, if the code reaches these statements. */
     // fprintf(stdout, "Waiting on the CAN socket to close.\n    If this takes too long, just force-close the application...\n");

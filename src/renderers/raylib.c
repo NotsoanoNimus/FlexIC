@@ -16,13 +16,13 @@
 
 /* Raylib-specific rendering methods. */
 static ic_err_t
-raylib_render_init(const renderer_t *self, volatile vehicle_data_t *current_data);
+raylib_render_init(const renderer_t *self);
 
 static void
-raylib_render_loading(const renderer_t *self, volatile vehicle_data_t *current_data);
+raylib_render_loading(const renderer_t *self);
 
 static void
-raylib_render_loop(const renderer_t *self, volatile vehicle_data_t *current_data);
+raylib_render_loop(const renderer_t *self);
 
 
 /*
@@ -42,7 +42,7 @@ const renderer_t *global_renderer = &renderer;
 
 
 static ic_err_t
-raylib_render_init(const renderer_t *self, volatile vehicle_data_t *current_data)
+raylib_render_init(const renderer_t *self)
 {
     ic_err_t config_status = ERR_OK;
 
@@ -62,14 +62,14 @@ raylib_render_init(const renderer_t *self, volatile vehicle_data_t *current_data
 }
 
 static void
-raylib_render_loading(const renderer_t *self, volatile vehicle_data_t *current_data)
+raylib_render_loading(const renderer_t *self)
 {
     return;
 }
 
 
 static void
-raylib_render_loop(const renderer_t *self, volatile vehicle_data_t *current_data)
+raylib_render_loop(const renderer_t *self)
 {
     if (0 == num_global_widgets || NULL == global_widgets) {
         fprintf(stderr, "ERROR: Empty or NULL global_widgets.\n");
@@ -82,9 +82,11 @@ raylib_render_loop(const renderer_t *self, volatile vehicle_data_t *current_data
         clock_t begin = clock();
 #endif   /* IC_DEBUG */
 
-        BeginDrawing();
+        /* Widget updates. */
+        for (int i = 0; i < num_global_widgets; ++i)
+            global_widgets[i]->update(global_widgets[i]);
 
-        ClearBackground((Color)IC_OPT_BG_TOP_LEFT_RGBA);
+        BeginDrawing();
 
 #if IC_OPT_BG_STATIC!=1
         DrawRectangleGradientEx(
@@ -101,11 +103,9 @@ raylib_render_loop(const renderer_t *self, volatile vehicle_data_t *current_data
         );
 #endif   /* IC_OPT_BG_STATIC */
 
-        for (int i = 0; i < num_global_widgets; ++i) {
-            if (NULL == global_widgets[i] || NULL == global_widgets[i]->draw) continue;
-
+        /* Widget render (no value updates). */
+        for (int i = 0; i < num_global_widgets; ++i)
             global_widgets[i]->draw(global_widgets[i]);
-        }
 
         /* After drawing all widgets, clear all 'has_update' flags. This will require an atomic operation... */
         for (int i = 0; i < DBC_SIGNALS_LEN; ++i) {
@@ -121,6 +121,8 @@ raylib_render_loop(const renderer_t *self, volatile vehicle_data_t *current_data
         double time = (double)(end - begin) / CLOCKS_PER_SEC;
         DPRINTLN(">>> Render time: %f (%f millis)", time, time * 1000.0f);
 #endif   /* IC_DEBUG */
+
+        ClearBackground((Color)IC_OPT_BG_TOP_LEFT_RGBA);
 
         EndDrawing();
     }
