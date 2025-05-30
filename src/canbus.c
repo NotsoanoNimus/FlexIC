@@ -184,6 +184,11 @@ process_can_frame(struct canfd_frame *frame)
 
         rtd->has_update = true;
         pthread_mutex_unlock(&rtd->lock);
+
+        /* A global bool prevents the drawing thread from needing to loop signals every pass. */
+        pthread_mutex_lock(&CAN.lock);
+        CAN.has_update = true;
+        pthread_mutex_unlock(&CAN.lock);
     }
 }
 

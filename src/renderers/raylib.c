@@ -113,12 +113,19 @@ raylib_render_loop(const renderer_t *self)
             global_widgets[i]->draw(global_widgets[i]);
 
         /* After drawing all widgets, clear all 'has_update' flags. This will require an atomic operation... */
-        for (int i = 0; i < DBC_SIGNALS_LEN; ++i) {
-            if (!DBC.signals[i].real_time_data.has_update) continue;
+        if (CAN.has_update) {
+            for (int i = 0; i < DBC_SIGNALS_LEN; ++i) {
+                if (!DBC.signals[i].real_time_data.has_update) continue;
 
-            pthread_mutex_lock(&DBC.signals[i].real_time_data.lock);
-            DBC.signals[i].real_time_data.has_update = false;
-            pthread_mutex_unlock(&DBC.signals[i].real_time_data.lock);
+                pthread_mutex_lock(&DBC.signals[i].real_time_data.lock);
+                DBC.signals[i].real_time_data.has_update = false;
+                pthread_mutex_unlock(&DBC.signals[i].real_time_data.lock);
+            }
+
+            /* A global bool prevents the drawing thread from needing to loop signals every pass. */
+            pthread_mutex_lock(&CAN.lock);
+            CAN.has_update = false;
+            pthread_mutex_unlock(&CAN.lock);
         }
 
 #if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1

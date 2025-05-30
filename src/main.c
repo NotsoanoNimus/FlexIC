@@ -37,6 +37,14 @@ static char *WIDGET_CONFIGURATION =
 #endif   /* IC_OPT_STATIC_CONFIG */
 ;
 
+volatile canbus_thread_ctx_t can_bus_ctx;
+can_bus_meta_t CAN = {
+    .has_update = false,
+    .lock = PTHREAD_MUTEX_INITIALIZER,
+    .can_thread_ctx = &can_bus_ctx
+};
+
+
 
 static ic_err_t load_config(char **into);
 
@@ -44,11 +52,10 @@ static ic_err_t load_config(char **into);
 int
 main(int argc, char **argv)
 {
-    // for (int i = 0; i < 32; ++i)
+    // for (int i = 0; i < 128; ++i)
     //     printf("#ifdef WIDGET_FACTORY_%u\n    if (%u >= num_widget_factories) return false;\n    extern func__widget_factory_create WIDGET_FACTORY_%u;\n    widget_factories[%u].create = WIDGET_FACTORY_%u;\n#endif   /* WIDGET_FACTORY_%u */\n", i, i, i, i, i, i);
     // return 0;
     pthread_t can_bus_thread;
-    volatile canbus_thread_ctx_t can_bus_ctx;
     ic_err_t status;
 
     /* Check auto-generated vehicle data and values. Make sure the defaults we need are there. */

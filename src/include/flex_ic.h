@@ -71,6 +71,16 @@ enum {
 } ic_err_t;
 
 
+/* Track CAN-bus items globally where desired. */
+typedef
+struct {
+    volatile bool has_update;
+    pthread_mutex_t lock;
+    volatile void *can_thread_ctx;
+} can_bus_meta_t;
+
+extern can_bus_meta_t CAN;
+
 /* Forward declarations. */
 typedef struct dbc_signal dbc_signal_t;
 typedef struct dbc_message dbc_message_t;
