@@ -15,13 +15,13 @@ stepped_bar__default__update(widget_t *self)
     MY_Y = y_pos->value;
     MY_ANGLE = rotation->value;
 
-    for (int i = 0; i < self->num_parent_signals; ++i) {
-        if (self->parent_signals[i]->real_time_data.has_update) {
-            DPRINTLN("[%s] SIGNAL RAW DATA (CHANNEL%u: %s): ", self->label, i, self->parent_signals[i]->name);
-            MEMDUMP(&(self->parent_signals[i]->real_time_data.value), 8);
-            DPRINTLN(">>>>> (%u, %u, %f deg)", MY_X, MY_Y, MY_ANGLE);
-        }
-    }
+    // for (int i = 0; i < self->num_parent_signals; ++i) {
+    //     if (self->parent_signals[i]->real_time_data.has_update) {
+    //         DPRINTLN("[%s] SIGNAL RAW DATA (CHANNEL%u: %s): ", self->label, i, self->parent_signals[i]->name);
+    //         MEMDUMP(&(self->parent_signals[i]->real_time_data.value), 8);
+    //         DPRINTLN(">>>>> (%u, %u, %f deg)", MY_X, MY_Y, MY_ANGLE);
+    //     }
+    // }
 }
 
 
