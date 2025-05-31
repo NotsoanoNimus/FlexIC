@@ -48,6 +48,16 @@ r#"/*
 "#;
 
 
+/* Filters signal and message names when generating name string and other references. */
+fn name_filter(c: char) -> char {
+    if c.is_alphanumeric() || c == '_' {
+        c
+    } else {
+        '_'
+    }
+}
+
+
 pub fn generate_from_dbc(into_dir: &str, dbc: &DBC) -> Result<(), Error>
 {
     dbg!(&dbc);
@@ -116,24 +126,38 @@ fn gen_src_get_property(dbc: &DBC, target_file: &mut File, token: &str) -> Resul
 
 fn generate_header(hdr_file: &mut File, dbc: &DBC) -> Result<(), Error>
 {
-    // TODO: Wait on this... I might be able to axe the header altogether.
-    hdr_file.write_all("#ifndef GEN_VEHICLE_H\n#define GEN_VEHICLE_H\n\n".as_bytes())?;
+    // The header is fairly simple: wrap everything with your typical header-guard, define
+    //  some well-known prototypes, throw in some consts, and close up.
+    hdr_file.write_all("#ifndef GEN_IC_VEHICLE_H\n#define GEN_IC_VEHICLE_H\n\n".as_bytes())?;
 
     hdr_file.write_all("void init_vehicle(void);\n\n".as_bytes())?;
     hdr_file.write_all(
         format!(
-            "#define DBC_SIGNALS_LEN {}\n#define DBC_MESSAGES_LEN {}",
+            "#define DBC_SIGNALS_LEN {}\n#define DBC_MESSAGES_LEN {}\n\n",
             dbc.signals().len(), dbc.messages().len()
         ).as_bytes()
     )?;
+    hdr_file.write_all(
+r#"enum MultiplexType
+{
+    Plain = 0,
+    Multiplexor,
+    MultiplexedSignal,
+    MultiplexorAndMultiplexedSignal
+};
+"#
+        .as_bytes())?;
 
-    hdr_file.write_all("\n\n\n#endif   /* GEN_VEHICLE_H */\n".as_bytes())?;
+    hdr_file.write_all("\n\n\n#endif   /* GEN_IC_VEHICLE_H */\n".as_bytes())?;
     Ok(())
 }
 
 
 fn generate_source(src_file: &mut File, dbc: &DBC) -> Result<(), Error>
 {
+    // Can't forget to include the generated header file.
+    src_file.write_all("#include \"vehicle.h\"\n#include \"flex_ic.h\"\n\n#include <pthread.h>\n\n".as_bytes())?;
+
     // First thing's first: look for special comments that give the application special info.
     //  See the list of 'extern' properties in 'flex_ic.h' to link the two items together.
     for item in vec!(
@@ -143,5 +167,192 @@ fn generate_source(src_file: &mut File, dbc: &DBC) -> Result<(), Error>
         gen_src_get_property(dbc, src_file, &format!("VEHICLE_{}", item.to_uppercase()))?;
     }
 
+    let struct_bodies = gen_src_dbc_structs(&dbc)?;
+
+    src_file.write_all(
+        &format!(
+            r#"
+
+const dbc_message_t messages[DBC_MESSAGES_LEN];
+
+
+dbc_signal_t signals[DBC_SIGNALS_LEN] =
+{{
+{}
+}};
+
+const dbc_message_t messages[DBC_MESSAGES_LEN] =
+{{
+{}
+}};
+
+
+void init_vehicle()
+{{
+{}
+}}
+
+
+dbc_t DBC = (dbc_t)
+{{
+    .messages = (const dbc_message_t *)&messages,
+    .signals = (dbc_signal_t *)&signals,
+}};
+
+"#,
+            // gen_src_struct_signals(&dbc),
+            // gen_src_struct_messages(&dbc)?,
+            struct_bodies.0,
+            struct_bodies.1,
+            gen_src_func_init_vehicle(&dbc)?
+        ).as_bytes()
+    )?;
+
     Ok(())
+}
+
+
+// fn gen_src_struct_signals(dbc: &DBC) -> String
+// {
+//     dbc.signals()
+//         .iter()
+//         .map(
+//             |signal| {
+//                 // Correlate the signal's first matched parent. This should be ok.
+//                 let parent_msg_name;
+//                 if let Some(parent_msg) = dbc.messages().iter().find_map(
+//                     |m| {
+//                         match m.signals().contains(signal) {
+//                             true => Some(m),
+//                             false => None
+//                         }
+//                     }
+//                 ) {
+//                     parent_msg_name = parent_msg.message_name()
+//                         .clone().chars().map(name_filter).collect();
+//                 } else {
+//                     // Orphaned signals are sad, but they won't stop us.
+//                     parent_msg_name = String::from("ORPHAN__");
+//                 }
+//
+//                 // Filter signal names too.
+//                 let signal_name: String = signal.name().chars().map(name_filter).collect();
+//
+//                 // Generate the inline struct definition.
+//                 String::from(
+//                     &format!(r#"
+// {{
+//     .name = "{}",
+//
+// }},
+// "#,
+//                         format!("{}_{}", parent_msg_name, signal_name)
+//                     )
+//                 )
+//             }
+//         )
+//         .collect::<Vec<String>>()
+//         .join("\n")
+// }
+
+
+fn gen_src_dbc_structs(dbc: &DBC) -> Result<(String, String), Error>
+{
+    let mut signals_struct_body = String::new();
+    let mut messages_struct_body = String::new();
+    let mut msg_index = 0;
+    let mut signal_freeze = 0;
+    let mut signal_at = 0;
+
+    dbc.messages()
+        .iter().for_each(|message| {
+            let parent_msg_name: String = message.message_name().chars().map(name_filter).collect();
+
+            signal_freeze = signal_at;
+            signal_at += message.signals().len();
+
+            signals_struct_body.push_str(
+                message.signals()
+                    .iter().map(|signal| {
+                        // Filter signal names too.
+                        let signal_name: String = signal.name().chars().map(name_filter).collect();
+                        let multiplex_type: String = String::from("Plain");   // TODO
+                        String::from(
+                            &format!(r#"
+    {{
+        .name = "{0}",
+        .parent_message = (dbc_message_t *)&messages[{msg_index}],
+        .widget_instances = NULL,
+        .num_widget_instances = 0,
+        .real_time_data = {{ {{0}}, false, PTHREAD_MUTEX_INITIALIZER }},
+        .start_bit = {1},
+        .signal_size = {2},
+        .is_little_endian = {3},
+        .is_unsigned = {4},
+        .multiplex_type = {5},
+        .multiplexor = {6},
+        .factor = {7},
+        .offset = {8},
+        .minimum_value = {9},
+        .maximum_value = {10},
+        .unit_text = "{11}",
+        .parsed_unit_type = {12},
+    }},"#,
+                                format!("{}_{}", parent_msg_name, signal_name),
+                                signal.start_bit,
+                                signal.signal_size,
+                                matches!(signal.byte_order(), ByteOrder::LittleEndian {}),
+                                matches!(signal.value_type(), ValueType::Unsigned {}),
+                                multiplex_type,
+                                0,   // TODO
+                                signal.factor,
+                                signal.offset,
+                                signal.min,
+                                signal.max,
+                                signal.unit(),
+                                "TEMP_CELSIUS"   // TODO
+                            )
+                        )
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n")
+                    .as_str()
+            );
+
+            let msg_id: u32 =
+                match message.message_id() {
+                    MessageId::Standard(i) => *i as u32,
+                    MessageId::Extended(i) => *i,
+                };
+
+            let mut signal_refs = String::new();
+            for x in signal_freeze..signal_at {
+                signal_refs.push_str(format!(" &signals[{x}],").as_str());
+            }
+
+            messages_struct_body.push_str(
+                format!(r#"
+    {{
+        .id = 0x{0:x},
+        .name = "{1}",
+        .signals = (dbc_signal_t *[]){{{2} }},
+        .num_signals = {3}
+    }},"#,
+                    msg_id,
+                    message.message_name().chars().map(name_filter).collect::<String>(),
+                    signal_refs,
+                    signal_at - signal_freeze,
+                ).as_str()
+            );
+
+            msg_index += 1;
+        });
+
+    Ok((signals_struct_body, messages_struct_body))
+}
+
+
+fn gen_src_func_init_vehicle(dbc: &DBC) -> Result<String, Error>
+{
+    Ok(String::from("    /* PLACEHOLDER - Hi! */"))
 }

@@ -103,22 +103,24 @@ struct dbc_message {
 };
 
 /* A structure holding a DBC signal type. */
+typedef enum MultiplexType multiplex_type_t;
+
 struct dbc_signal {
+    char *name;
     dbc_message_t *parent_message;
     void **widget_instances;   /* This is VOID because of circular dependencies which I don't feel like resolving atm */
     uint8_t num_widget_instances;
     real_time_data_t real_time_data;
-    char *name;
     uint32_t start_bit;
     uint32_t signal_size;
     bool is_little_endian;
     bool is_unsigned;
-    float factor;
-    float offset;
-    uint32_t minimum_value;
-    uint32_t maximum_value;
-    bool is_multiplexed;
+    multiplex_type_t multiplex_type;
     uint8_t multiplexor;
+    double factor;
+    double offset;
+    double minimum_value;
+    double maximum_value;
     char *unit_text;
     unit_type_t parsed_unit_type;
 };
