@@ -131,8 +131,14 @@ struct {
 } dbc_t;
 
 /* References to external variables that should be defined only in vehicle.c. */
-extern const char *VEHICLE_NAME;
-extern const char *VEHICLE_VERSION;
+extern const char *IC_VEHICLE_DBC_COMPILED_BY;
+extern const char *IC_VEHICLE_NAME;
+extern const char *IC_VEHICLE_SHORT_NAME;
+extern const char *IC_VEHICLE_VERSION;
+extern const char *IC_VEHICLE_OWNER_NAME;
+extern const char *IC_VEHICLE_OWNER_PHONE;
+extern const char *IC_VEHICLE_OWNER_EMAIL;
+extern const char *IC_VEHICLE_EXTRA_INFO;
 extern const unsigned int BUS_SPEED;
 extern dbc_t DBC;
 

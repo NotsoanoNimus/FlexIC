@@ -1,9 +1,10 @@
 use std::io::{Error, Write};
 use std::fs::File;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
-use can_dbc::DBC;
+use can_dbc::*;
 
+use crate::dbc::HasSignals;
 
 const VEHICLE_C: &str = "vehicle.c";
 const VEHICLE_H: &str = "vehicle.h";
@@ -41,9 +42,6 @@ r#"/*
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
-
-      +++
-      +++ Git Hash: {}
     ========================================================================================
 */
 
@@ -62,12 +60,88 @@ pub fn generate_from_dbc(into_dir: &str, dbc: &DBC) -> Result<(), Error>
     let mut src_file = File::create(&format!("{}/{}", into_dir, VEHICLE_C))?;
     let mut hdr_file = File::create(&format!("{}/{}", into_dir, VEHICLE_H))?;
 
-    let timestamp = Command::new("date").arg("+%s").output()?.stdout;
-    let git_hash = Command::new("git").arg("rev-parse").arg("HEAD").output()?.stdout;
+    let ts_output = Command::new("date").arg("+%s").output()?.stdout;
+    let gh_output = Command::new("git").arg("rev-parse").arg("HEAD").output()?.stdout;
+    let timestamp = String::from_utf8_lossy(&ts_output);
+    let git_hash = String::from_utf8_lossy(&gh_output);
     src_file.write_all(AUTO_GENERATED_STAMP.as_bytes())?;
-    src_file.write_all(format!("// Generation timestamp: {}\n// Git Hash: {}\n\n\n", timestamp, git_hash).as_bytes())?;
+    src_file.write_all(format!("// Generation timestamp: {}\n// Git Hash: {}\n\n\n",
+                               timestamp.trim(), git_hash.trim()).as_bytes())?;
     hdr_file.write_all(AUTO_GENERATED_STAMP.as_bytes())?;
-    src_file.write_all(format!("// Generation timestamp: {}\n// Git Hash: {}\n\n\n", timestamp, git_hash).as_bytes())?;
+    hdr_file.write_all(format!("// Generation timestamp: {}\n// Git Hash: {}\n\n\n",
+                               timestamp.trim(), git_hash.trim()).as_bytes())?;
+
+    generate_header(&mut hdr_file, &dbc)?;
+    generate_source(&mut src_file, &dbc)?;
+
+    Ok(())
+}
+
+
+fn extract_value_from_comments(dbc: &DBC, token: &str) -> String
+{
+    match dbc.comments().iter().find_map(
+        |comment| {
+            if let Comment::Message { message_id: msg_id, comment: msg_comment } = comment {
+                if !msg_comment.starts_with(&format!("IC_{}:", token)) { return None; }
+
+                if let MessageId::Standard(message_id) = msg_id {
+                    if *message_id == 0 {
+                        return Some(msg_comment);
+                    }
+                } else if let MessageId::Extended(message_id) = msg_id {
+                    if *message_id == 0 {
+                        return Some(msg_comment);
+                    }
+                }
+            }
+
+            None
+        })
+    {
+        Some(value) => value.replace(&format!("IC_{}:", token), ""),
+        _ => String::from("UNKNOWN")
+    }.clone()
+}
+
+
+fn gen_src_get_property(dbc: &DBC, target_file: &mut File, token: &str) -> Result<(), Error>
+{
+    let ephemeral_value = extract_value_from_comments(dbc, token);
+    target_file.write_all(format!("const char *IC_{} = \"{}\";\n", token, ephemeral_value).as_bytes())?;
+
+    Ok(())
+}
+
+
+fn generate_header(hdr_file: &mut File, dbc: &DBC) -> Result<(), Error>
+{
+    // TODO: Wait on this... I might be able to axe the header altogether.
+    hdr_file.write_all("#ifndef GEN_VEHICLE_H\n#define GEN_VEHICLE_H\n\n".as_bytes())?;
+
+    hdr_file.write_all("void init_vehicle(void);\n\n".as_bytes())?;
+    hdr_file.write_all(
+        format!(
+            "#define DBC_SIGNALS_LEN {}\n#define DBC_MESSAGES_LEN {}",
+            dbc.signals().len(), dbc.messages().len()
+        ).as_bytes()
+    )?;
+
+    hdr_file.write_all("\n\n\n#endif   /* GEN_VEHICLE_H */\n".as_bytes())?;
+    Ok(())
+}
+
+
+fn generate_source(src_file: &mut File, dbc: &DBC) -> Result<(), Error>
+{
+    // First thing's first: look for special comments that give the application special info.
+    //  See the list of 'extern' properties in 'flex_ic.h' to link the two items together.
+    for item in vec!(
+        "dbc_compiled_by", "name", "short_name", "version",
+        "owner_name", "owner_phone", "owner_email", "extra_info"
+    ).iter() {
+        gen_src_get_property(dbc, src_file, &format!("VEHICLE_{}", item.to_uppercase()))?;
+    }
 
     Ok(())
 }
