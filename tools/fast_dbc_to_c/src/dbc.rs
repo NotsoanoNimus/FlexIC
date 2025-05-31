@@ -20,7 +20,7 @@ impl HasSignals for DBC
 }
 
 
-pub fn load_dbc(from_file: &String) -> Result<can_dbc::DBC, Box<dyn std::error::Error>>
+pub fn load_dbc(from_file: &String) -> Result<DBC, Box<dyn std::error::Error>>
 {
     let mut conf = File::open(from_file)?;
     let mut buff = Vec::new();

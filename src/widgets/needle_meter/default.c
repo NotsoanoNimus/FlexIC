@@ -92,8 +92,8 @@ needle_meter__default__update(widget_t *self)
     for (int i = 0; i < self->num_parent_signals; ++i) {
         if (self->parent_signals[i]->real_time_data.has_update) {
             DPRINTLN("[%s] SIGNAL RAW DATA (CHANNEL%u: %s): ", self->label, i, self->parent_signals[i]->name);
-            MEMDUMP(self->parent_signals[i]->real_time_data.data, SIGNAL_REAL_TIME_DATA_BUFFER_SIZE);
-            MY_X = *(uint16_t *)(CHANNEL(0).data);
+            MEMDUMP(&(self->parent_signals[i]->real_time_data.value), 8);
+            // MY_X = *(uint16_t *)(CHANNEL(0).data);
         }
     }
 

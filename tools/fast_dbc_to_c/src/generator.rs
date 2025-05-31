@@ -3,8 +3,8 @@ use std::fs::File;
 use std::process::Command;
 
 use can_dbc::*;
-
 use crate::dbc::HasSignals;
+use crate::units::InferredUnitType;
 
 const VEHICLE_C: &str = "vehicle.c";
 const VEHICLE_H: &str = "vehicle.h";
@@ -128,25 +128,15 @@ fn generate_header(hdr_file: &mut File, dbc: &DBC) -> Result<(), Error>
 {
     // The header is fairly simple: wrap everything with your typical header-guard, define
     //  some well-known prototypes, throw in some consts, and close up.
-    hdr_file.write_all("#ifndef GEN_IC_VEHICLE_H\n#define GEN_IC_VEHICLE_H\n\n".as_bytes())?;
+    hdr_file.write_all("#ifndef GEN_IC_VEHICLE_H\n#define GEN_IC_VEHICLE_H\n\n#include \"units.h\"\n\n".as_bytes())?;
 
-    hdr_file.write_all("void init_vehicle(void);\n\n".as_bytes())?;
+    hdr_file.write_all("void init_vehicle_dbc_data(void);\n\n".as_bytes())?;
     hdr_file.write_all(
         format!(
             "#define DBC_SIGNALS_LEN {}\n#define DBC_MESSAGES_LEN {}\n\n",
             dbc.signals().len(), dbc.messages().len()
         ).as_bytes()
     )?;
-    hdr_file.write_all(
-r#"enum MultiplexType
-{
-    Plain = 0,
-    Multiplexor,
-    MultiplexedSignal,
-    MultiplexorAndMultiplexedSignal
-};
-"#
-        .as_bytes())?;
 
     hdr_file.write_all("\n\n\n#endif   /* GEN_IC_VEHICLE_H */\n".as_bytes())?;
     Ok(())
@@ -187,7 +177,7 @@ const dbc_message_t messages[DBC_MESSAGES_LEN] =
 }};
 
 
-void init_vehicle()
+void init_vehicle_dbc_data()
 {{
 {}
 }}
@@ -200,60 +190,14 @@ dbc_t DBC = (dbc_t)
 }};
 
 "#,
-            // gen_src_struct_signals(&dbc),
-            // gen_src_struct_messages(&dbc)?,
             struct_bodies.0,
             struct_bodies.1,
-            gen_src_func_init_vehicle(&dbc)?
+            gen_src_func_init_vehicle_dbc_data(&dbc)?
         ).as_bytes()
     )?;
 
     Ok(())
 }
-
-
-// fn gen_src_struct_signals(dbc: &DBC) -> String
-// {
-//     dbc.signals()
-//         .iter()
-//         .map(
-//             |signal| {
-//                 // Correlate the signal's first matched parent. This should be ok.
-//                 let parent_msg_name;
-//                 if let Some(parent_msg) = dbc.messages().iter().find_map(
-//                     |m| {
-//                         match m.signals().contains(signal) {
-//                             true => Some(m),
-//                             false => None
-//                         }
-//                     }
-//                 ) {
-//                     parent_msg_name = parent_msg.message_name()
-//                         .clone().chars().map(name_filter).collect();
-//                 } else {
-//                     // Orphaned signals are sad, but they won't stop us.
-//                     parent_msg_name = String::from("ORPHAN__");
-//                 }
-//
-//                 // Filter signal names too.
-//                 let signal_name: String = signal.name().chars().map(name_filter).collect();
-//
-//                 // Generate the inline struct definition.
-//                 String::from(
-//                     &format!(r#"
-// {{
-//     .name = "{}",
-//
-// }},
-// "#,
-//                         format!("{}_{}", parent_msg_name, signal_name)
-//                     )
-//                 )
-//             }
-//         )
-//         .collect::<Vec<String>>()
-//         .join("\n")
-// }
 
 
 fn gen_src_dbc_structs(dbc: &DBC) -> Result<(String, String), Error>
@@ -276,7 +220,29 @@ fn gen_src_dbc_structs(dbc: &DBC) -> Result<(String, String), Error>
                     .iter().map(|signal| {
                         // Filter signal names too.
                         let signal_name: String = signal.name().chars().map(name_filter).collect();
-                        let multiplex_type: String = String::from("Plain");   // TODO
+
+                        let multiplex_type: &str =
+                            match signal.multiplexer_indicator() {
+                                MultiplexIndicator::MultiplexorAndMultiplexedSignal(_) => "MultiplexorAndMultiplexedSignal",
+                                MultiplexIndicator::MultiplexedSignal(_) => "MultiplexedSignal",
+                                MultiplexIndicator::Multiplexor => "Multiplexor",
+                                MultiplexIndicator::Plain => "Plain",
+                            };
+
+                        let multiplexor =
+                            match signal.multiplexer_indicator() {
+                                MultiplexIndicator::MultiplexedSignal(i) => i,
+                                MultiplexIndicator::MultiplexorAndMultiplexedSignal(i) => i,
+                                _ => &0,
+                            };
+
+                        /* Note: defaults to RAW when the type can't be inferred. */
+                        let parsed_unit_type =
+                            str::parse::<InferredUnitType>(signal.unit()).unwrap_or_else(|e| {
+                                eprintln!("{}", e);
+                                InferredUnitType::Raw
+                            });
+
                         String::from(
                             &format!(r#"
     {{
@@ -284,7 +250,7 @@ fn gen_src_dbc_structs(dbc: &DBC) -> Result<(String, String), Error>
         .parent_message = (dbc_message_t *)&messages[{msg_index}],
         .widget_instances = NULL,
         .num_widget_instances = 0,
-        .real_time_data = {{ {{0}}, false, PTHREAD_MUTEX_INITIALIZER }},
+        .real_time_data = {{ false, 0.0f, PTHREAD_MUTEX_INITIALIZER }},
         .start_bit = {1},
         .signal_size = {2},
         .is_little_endian = {3},
@@ -296,7 +262,7 @@ fn gen_src_dbc_structs(dbc: &DBC) -> Result<(String, String), Error>
         .minimum_value = {9},
         .maximum_value = {10},
         .unit_text = "{11}",
-        .parsed_unit_type = {12},
+        .parsed_unit_type = Unit{12:?},
     }},"#,
                                 format!("{}_{}", parent_msg_name, signal_name),
                                 signal.start_bit,
@@ -304,13 +270,13 @@ fn gen_src_dbc_structs(dbc: &DBC) -> Result<(String, String), Error>
                                 matches!(signal.byte_order(), ByteOrder::LittleEndian {}),
                                 matches!(signal.value_type(), ValueType::Unsigned {}),
                                 multiplex_type,
-                                0,   // TODO
+                                multiplexor,
                                 signal.factor,
                                 signal.offset,
                                 signal.min,
                                 signal.max,
                                 signal.unit(),
-                                "TEMP_CELSIUS"   // TODO
+                                parsed_unit_type
                             )
                         )
                     })
@@ -352,7 +318,28 @@ fn gen_src_dbc_structs(dbc: &DBC) -> Result<(String, String), Error>
 }
 
 
-fn gen_src_func_init_vehicle(dbc: &DBC) -> Result<String, Error>
+fn gen_src_func_init_vehicle_dbc_data(dbc: &DBC) -> Result<String, Error>
 {
+//     let mut init_func_body = String::new();
+//
+//     for (index, signal) in dbc.signals().iter().enumerate() {
+//         init_func_body.push_str(
+//             &format!(
+// r#"    /* SS: {0:04} bits */ signals[0x{1:04X}].real_time_data.value = (volatile double *)calloc(1, 8);"#,
+//         //signals[0x{1:04}].real_time_data.value_width = {2};
+//                 signal.signal_size,
+//                 index,
+//                 // match signal.signal_size {
+//                 //     0..=8 => 1,
+//                 //     9..=16 => 2,
+//                 //     17..=32 => 4,
+//                 //     33..=64 => 8,
+//                 //     _ => panic!("Invalid signal size {}: signals cannot be larger than 64 bits.", signal.signal_size),
+//                 // }
+//             )
+//         );
+//     }
+
     Ok(String::from("    /* PLACEHOLDER - Hi! */"))
+    // Ok(init_func_body)
 }

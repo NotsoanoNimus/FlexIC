@@ -10,8 +10,17 @@
 static void
 stepped_bar__default__update(widget_t *self)
 {
-    MY_X = *(uint16_t *)&(x_pos->data[0]);
-    MY_Y = *(uint16_t *)&(y_pos->data[2]);
+    // TODO: Fix this once signal parsing works.
+    MY_X = x_pos->value;
+    MY_Y = y_pos->value;
+
+    for (int i = 0; i < self->num_parent_signals; ++i) {
+        if (self->parent_signals[i]->real_time_data.has_update) {
+            DPRINTLN("[%s] SIGNAL RAW DATA (CHANNEL%u: %s): ", self->label, i, self->parent_signals[i]->name);
+            MEMDUMP(&(self->parent_signals[i]->real_time_data.value), 8);
+            DPRINTLN(">>>>> (%u, %u)", MY_X, MY_Y);
+        }
+    }
 }
 
 

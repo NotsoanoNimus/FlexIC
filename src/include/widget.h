@@ -8,6 +8,8 @@
 #include "flex_ic.h"
 #include "renderer.h"
 
+#include <stdio.h>
+
 
 
 /* Forward declaration. */

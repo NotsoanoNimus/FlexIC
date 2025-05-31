@@ -26,11 +26,11 @@
 static char *WIDGET_CONFIGURATION =
 #if IC_OPT_STATIC_CONFIG==1
     (char *)
-    "ICSim_Speed,Vehicle Speed,needle_meter,yes,20,20,200,200,2,"
+    "WebData_2000_Signal_6,Vehicle Speed,needle_meter,yes,20,20,200,200,2,"
         "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
     // "Signal_5060_4:Signal_5060_3,Vehicle Speed 2,needle_meter:minimalistic,yes,600,100,200,200,1,"
     //     "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
-    "Signal_7_xpos:Signal_7_ypos,le metric,stepped_bar,yes,320,100,200,200,3,"
+    "BlueSquare_7_pos_x:BlueSquare_7_pos_y:BlueSquare_7_rotation,le metric,stepped_bar,yes,320,100,200,200,3,"
         "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60"
 #else   /* IC_OPT_STATIC_CONFIG */
     NULL
@@ -59,8 +59,7 @@ main(int argc, char **argv)
     ic_err_t status;
 
     /* Check auto-generated vehicle data and values. Make sure the defaults we need are there. */
-    // TODO!
-    init_vehicle();
+    init_vehicle_dbc_data();
 
     /* Populate the CAN bus thread context. */
     can_bus_ctx = (canbus_thread_ctx_t)

@@ -9,7 +9,7 @@
 #include <stdbool.h>
 
 #include "flex_ic_opts.h"
-#include "unit_types.h"
+#include "units.h"
 
 /* Control 'malloc' and other stdlib definitions from here. */
 #if IC_OPT_NOSTDLIB==0
@@ -21,12 +21,6 @@
 
 #define STRINGIFY(x) #x
 #define AS_LITERAL(x) STRINGIFY(x)
-
-#if IC_OPT_CAN_FD_EXTENDED==1
-#   define SIGNAL_REAL_TIME_DATA_BUFFER_SIZE    64   /* CAN_FD_MAX_DLEN */
-#else   /* IC_OPT_CAN_FD_EXTENDED */
-#   define SIGNAL_REAL_TIME_DATA_BUFFER_SIZE    8    /* CAN_MAX_DLEN */
-#endif   /* IC_OPT_CAN_FD_EXTENDED */
 
 
 #if IC_DEBUG==1
@@ -88,8 +82,9 @@ typedef struct dbc_message dbc_message_t;
 /* Real-time data attachment for signals. */
 typedef
 struct {
-    volatile uint8_t data[SIGNAL_REAL_TIME_DATA_BUFFER_SIZE];
     volatile bool has_update;
+    volatile double value;
+    // int value_width;
     pthread_mutex_t lock;
 } real_time_data_t;
 
@@ -102,9 +97,16 @@ struct dbc_message {
     uint32_t num_signals;
 };
 
-/* A structure holding a DBC signal type. */
-typedef enum MultiplexType multiplex_type_t;
+/* Valid signal multiplex types. */
+typedef
+enum {
+    Plain = 0,
+    Multiplexor,
+    MultiplexedSignal,
+    MultiplexorAndMultiplexedSignal
+} multiplex_type_t;
 
+/* A structure holding a DBC signal type. */
 struct dbc_signal {
     char *name;
     dbc_message_t *parent_message;
