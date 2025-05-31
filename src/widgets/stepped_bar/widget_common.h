@@ -9,7 +9,7 @@
 
 
 
-real_time_data_t *x_pos, *y_pos;
+real_time_data_t *x_pos, *y_pos, *rotation;
 
 
 

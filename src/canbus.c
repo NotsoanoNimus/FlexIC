@@ -151,44 +151,39 @@ canbus_status(const ic_err_t status)
 
 
 static inline void
-store_signal_value(dbc_signal_t *signal, uint8_t *frame_data)
+store_signal_value(dbc_signal_t *signal, uint8_t *frame_data, uint8_t frame_len)
 {
-    // TODO: I think this needs to be faster.
     real_time_data_t *rtd = &(signal->real_time_data);
 
-    uint64_t value = 0;
-    uint8_t byte_index, bit_in_byte, bit;
+    uint64_t value = 0, bit = 0;
+    uint8_t bit_in_byte = 0;
 
-    // Helper function to extract bits from a buffer in little-endian format
+    // TODO: This is probably really inefficient.
     for (uint8_t i = 0, bit_index = signal->start_bit; i < (uint8_t)signal->signal_size; ++i, ++bit_index) {
         if (signal->is_little_endian) {
-            byte_index = bit_index / 8;
             bit_in_byte = bit_index % 8;
-            bit = (frame_data[byte_index] >> bit_in_byte) & 0x01;
-            value |= ((uint64_t)bit << i);
+            bit = (frame_data[bit_index / 8] >> bit_in_byte) & 0x01;
+            value |= (bit << i);
         } else {
-            // Compute the byte index and bit position within that byte
-            byte_index = 7 - (bit_index / 8);
             bit_in_byte = 7 - (bit_index % 8);
-            bit = (frame_data[byte_index] >> bit_in_byte) & 0x01;
-            // For Motorola, bits are ordered from MSB to LSB
+            bit = (frame_data[frame_len - (i / 8)] >> bit_in_byte) & 0x01;
+            /* For Motorola, bits are ordered from MSB to LSB. */
             value = (value << 1) | bit;
         }
     }
 
-    // TODO: Evaluate, is double ok here for all data types, regardless of value_width? Is value_width important at all?
-    rtd->value = signal->offset + ((double)value * signal->factor);
-    printf(">>>>> [%s]:%016lX=%lu//%f\n", signal->name, htobe64(*(uint64_t *)frame_data), value, rtd->value);
+    /* Set the signal value. */
+    rtd->value = CLAMP(
+        (signal->offset + ((double)value * signal->factor)),
+        signal->minimum_value,
+        signal->maximum_value
+    );
 
-    // switch (rtd->value_width) {
-    //     case 1: *(uint8_t *)(rtd->value) = (uint8_t)value; break;
-    //     case 2: *(uint16_t *)(rtd->value) = (uint16_t)value; break;
-    //     case 4: *(uint32_t *)(rtd->value) = (uint32_t)value; break;
-    //     case 8: *(uint64_t *)(rtd->value) = value; break;
-    //     default:
-    //         fprintf(stderr, "FATAL:  Unacceptable signal value_width. Values can only be 1,2,4,8.\n");
-    //         exit(EXIT_FAILURE);
-    // }
+    /* Welcome back (you'll be here awhile again). Uncomment for testing. */
+    // printf(
+    //     ">>>>> [%s:%u]:%016lX=%lu//%f\n",
+    //     signal->name, signal->is_little_endian, htobe64(*(uint64_t *)frame_data), value, rtd->value
+    // );
 }
 
 
@@ -222,7 +217,7 @@ process_can_frame(struct canfd_frame *frame)
 
         /* ----- LOCK */ pthread_mutex_lock(&rtd->lock);
         rtd->value = 0.0f;
-        store_signal_value(message->signals[i], frame->data);
+        store_signal_value(message->signals[i], frame->data, frame->len);
 
         rtd->has_update = true;
         /* ----- UNLOCK */ pthread_mutex_unlock(&rtd->lock);

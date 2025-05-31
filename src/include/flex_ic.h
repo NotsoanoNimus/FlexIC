@@ -22,6 +22,9 @@
 #define STRINGIFY(x) #x
 #define AS_LITERAL(x) STRINGIFY(x)
 
+#define CLAMP(val, min, max) \
+    ((val) > (max) ? (max) : ((val) < (min) ? (min) : (val)))
+
 
 #if IC_DEBUG==1
 #define DPRINTLN(x, ...) \

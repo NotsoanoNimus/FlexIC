@@ -40,6 +40,7 @@ typedef
 struct {
     vec2_t position;
     vec2_t resolution;
+    double rotation;
     uint32_t z_index;   /* control widget rendering orders */
     volatile bool visible;   /* whether to draw the widget */
     volatile void *internal;   /* state object custom to the widget instance and type */
@@ -82,6 +83,7 @@ ic_err_t load_widgets(char *mutable_configuration);
 #define MY_Y self->state.position.y
 #define MY_WIDTH self->state.resolution.x
 #define MY_HEIGHT self->state.resolution.y
+#define MY_ANGLE self->state.rotation
 #define MY_Z_INDEX self->state.z_index
 
 extern const char *widget_default_skin_name;
