@@ -93,6 +93,8 @@ raylib_render_loop(const renderer_t *self)
 
         BeginDrawing();
 
+        ClearBackground((Color)IC_OPT_BG_TOP_LEFT_RGBA);
+
 #if IC_OPT_BG_STATIC!=1
         DrawRectangleGradientEx(
             (Rectangle){
@@ -145,7 +147,9 @@ raylib_render_loop(const renderer_t *self)
         }
 #endif   /* IC_DEBUG */
 
-        ClearBackground((Color)IC_OPT_BG_TOP_LEFT_RGBA);
+#if IC_DEBUG==1
+        DrawFPS(10, 10);
+#endif   /* IC_DEBUG */
 
         EndDrawing();
     }
