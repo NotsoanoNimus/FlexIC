@@ -62,13 +62,6 @@
  */
 #define IC_OPT_NOSTDLIB         0
 
-/*
- * Define whether custom hooks are provided for each given message type.
- *  Hook symbols follow the format: '_msg_hook_{name}' where '{name}' is the DBC Message Name.
- *  Hooks MUST conform to the _func__update_vehicle_data prototype in "flex_ic.h"
- */
-#define IC_OPT_CUSTOM_HOOK_RPM  0
-
 
 
 #endif   /* FLEX_IC_OPTS_H */
