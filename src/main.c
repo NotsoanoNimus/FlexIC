@@ -18,25 +18,13 @@
 
 
 /*
- * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- * HEY! The configuration parser is quite sensitive.
- * Want to make sure your configuration is correct? Please check the repository's 'docs/widget_conf.md' instructions.
- * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * An external reference to the generated widgets-configuration.
+ *  See the build process documentation for more details.
  */
-static char *WIDGET_CONFIGURATION =
-#if IC_OPT_STATIC_CONFIG==1
-    (char *)
-    "WebData_2000_Signal_6,Vehicle Speed,needle_meter,yes,20,20,200,200,2,"
-        "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
-    // "Signal_5060_4:Signal_5060_3,Vehicle Speed 2,needle_meter:minimalistic,yes,600,100,200,200,1,"
-    //     "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60\n"
-    "BlueSquare_7_pos_x:BlueSquare_7_pos_y:BlueSquare_7_rotation,le metric,stepped_bar,yes,320,100,200,200,3,"
-        "240:0:120:20:5:10:MONOSPACE:DIAMOND:GROOVE:80:FD6611AA:DDDDDFF:DD9999CC:mph:100:60"
-#else   /* IC_OPT_STATIC_CONFIG */
-    NULL
-#endif   /* IC_OPT_STATIC_CONFIG */
-;
+extern const char *WIDGETS_CONFIGURATION;
 
+
+/* Async objects which need to be accessible globally. */
 volatile canbus_thread_ctx_t can_bus_ctx;
 can_bus_meta_t CAN = {
     .has_update = false,
@@ -45,16 +33,9 @@ can_bus_meta_t CAN = {
 };
 
 
-
-static ic_err_t load_config(char **into);
-
-
 int
 main(int argc, char **argv)
 {
-    // for (int i = 0; i < 128; ++i)
-    //     printf("#ifdef WIDGET_FACTORY_%u\n    if (%u >= num_widget_factories) return false;\n    extern func__widget_factory_create WIDGET_FACTORY_%u;\n    widget_factories[%u].create = WIDGET_FACTORY_%u;\n#endif   /* WIDGET_FACTORY_%u */\n", i, i, i, i, i, i);
-    // return 0;
     pthread_t can_bus_thread;
     ic_err_t status;
 
@@ -67,13 +48,13 @@ main(int argc, char **argv)
         .thread_status = ERR_OK,
         .should_close = false,
         .is_listening = false,
-        .can_if_name = "vcan0"  // TODO! params
+        .can_if_name = IC_OPT_CAN_IF_NAME
     };
 
     /* Load the widgets configuration. */
-    char *conf = NULL;
-    if (ERR_OK != (status = load_config(&conf))) {
-        fprintf(stderr, "ERROR:  Failed to load widget config (e:%u). Aborting.\n", status);
+    char *conf = strdup(WIDGETS_CONFIGURATION);
+    if (NULL == conf) {
+        fprintf(stderr, "ERROR:  Failed to load widget config (e:OUT_OF_RESOURCES). Aborting.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -117,63 +98,4 @@ main(int argc, char **argv)
 
     /* All done. */
     return 0;
-}
-
-
-static ic_err_t
-load_config(char **into)
-{
-    if (NULL == into) return ERR_ARGS;
-
-#if IC_OPT_STATIC_CONFIG!=1
-    if (0 != access(IC_OPT_CONFIG_PATH, F_OK)) {
-        return ERR_CONFIG_MISSING;
-    }
-    FILE *config_file = fopen(IC_OPT_CONFIG_PATH, "rb");  // open in binary mode
-    if (NULL == config_file) {
-        perror("fopen");
-        return ERR_CONFIG_LOAD;
-    }
-    if (fseek(config_file, 0, SEEK_END) != 0) {
-        perror("fseek");
-        fclose(config_file);
-        return ERR_CONFIG_LOAD;
-    }
-    long file_size = ftell(config_file);
-    if (file_size < 0) {
-        perror("ftell");
-        fclose(config_file);
-        return ERR_CONFIG_LOAD;
-    }
-
-    rewind(config_file);
-
-    uint8_t *buffer = calloc(1, file_size + 5);
-    if (NULL == buffer) {
-        perror("malloc");
-        fclose(config_file);
-        return ERR_OUT_OF_RESOURCES;
-    }
-
-    size_t bytes_read = fread(buffer, 1, file_size, config_file);
-    if (bytes_read != file_size) {
-        perror("fread");
-        free(buffer);
-        fclose(config_file);
-        return ERR_CONFIG_READ;
-    }
-
-    fclose(config_file);
-
-    *into = (const char *)buffer;
-#else   /* IC_OPT_STATIC_CONFIG */
-    if (NULL == WIDGET_CONFIGURATION || strlen(WIDGET_CONFIGURATION) <= 0) {
-        return ERR_CONFIG_MISSING;
-    }
-
-    *into = calloc(1, strlen(WIDGET_CONFIGURATION) + 5);
-    strcpy(*into, WIDGET_CONFIGURATION);
-#endif   /* IC_OPT_STATIC_CONFIG */
-
-    return ERR_OK;
 }

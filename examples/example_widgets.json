@@ -1,0 +1,28 @@
+[
+    {
+        "message_name": "WebData_2000",
+        "signal_names": [ "Signal_6" ],
+        "label": "Vehicle Speed",
+        "type": "needle_meter",
+        "skin": "default",
+        "visible": true,
+        "position": { "x": 20, "y": 20 },
+        "dimensions": { "width": 200, "height": 200 },
+        "z_index": 2,
+        "options": {
+        }
+    },
+    {
+        "message_name": "BlueSquare_7",
+        "signal_names": [ "pos_x", "pos_y", "rotation" ],
+        "label": "CAN Messaging Test",
+        "type": "stepped_bar",
+        "skin": null,
+        "visible": true,
+        "position": { "x": 320, "y": 100 },
+        "dimensions": { "width": 40, "height": 50 },
+        "z_index": 3,
+        "options": {
+        }
+    }
+]

@@ -3,6 +3,8 @@ build/
 
 **/.idea
 
+.venv
+
 # Memory usage stats tests
 massif.*
 # Core dumps

@@ -7,6 +7,9 @@
 
 
 
+/* Virtual CAN interface name. */
+#define IC_OPT_CAN_IF_NAME "vcan0"
+
 /*
  * Enables O(1) [fast] lookup of message IDs, but requires MUCH higher RAM consumption.
  *  This option should be set to 0 for systems with reduced RAM where there is a wide
@@ -16,27 +19,14 @@
 #define IC_OPT_ID_MAPPING 1
 
 /*
- * If this option is set to 1, a static renderer configuration is bundled with the
- *  compiled application. This removes the file-system dependency of the application
- *  altogether and allows the entire application to be self-contained. This works by
- *  embedding the configuration in a known variable name (WIDGET_CONFIGURATION) in the
- *  `renderer.c` module. When this is NOT set, WIDGET_CONFIGURATION is sourced from a
- *  well-known path on the local filesystem.
- */
-#define IC_OPT_STATIC_CONFIG 1
-
-/*
  * Define background gradient colors.
- *  If the background is static (a non-gradient), use the top-left color value.
+ *  If the background is static (i.e., a non-gradient), use the top-left color value.
  */
 #define IC_OPT_BG_STATIC 0
 #define IC_OPT_BG_TOP_LEFT_RGBA     { 0xDD, 0x32, 0x11, 0xFF }
 #define IC_OPT_BG_BOTTOM_LEFT_RGBA  { 0xFF, 0xAE, 0xCC, 0xFF }
 #define IC_OPT_BG_TOP_RIGHT_RGBA    { 0x11, 0x44, 0x82, 0xFF }
 #define IC_OPT_BG_BOTTOM_RIGHT_RGBA { 0x98, 0xAA, 0xED, 0xFF }
-
-/* Where to find the dynamic widget configuration when it's not static. */
-#define IC_OPT_CONFIG_PATH "/etc/flex_ic_widgets.config.csv"
 
 /* The FPS limit to use when rendering the IC. */
 #define IC_OPT_FPS_LIMIT 60

@@ -270,8 +270,7 @@ load_widgets(char *mutable_configuration)
 
         /* Quickly get the skin name, if defined. */
         char *skin_name = strtok(widget_type, ":");
-        skin_name = strtok(NULL, ":");
-        if (NULL == skin_name) {
+        if (NULL == (skin_name = strtok(NULL, ":"))) {
             skin_name = (char *)DEFAULT_SKIN;
         }
         CONF_SUMMARIZE(skin_name);
@@ -314,6 +313,7 @@ load_widgets(char *mutable_configuration)
         new_widget->type = strdup(widget_type);
         new_widget->label = strdup(widget_label);
         new_widget->skin_name = strdup(skin_name);
+        new_widget->state.visible = 0 == strcasecmp(visible, "yes");
         new_widget->state.resolution.x = (int)strtol(width, &endptr, 10);   CHECK_STRTOL(width);
         new_widget->state.resolution.y = (int)strtol(height, &endptr, 10);  CHECK_STRTOL(height);
         new_widget->state.position.x = (int)strtol(x_pos, &endptr, 10);     CHECK_STRTOL(x_pos);
