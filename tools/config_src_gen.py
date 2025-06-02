@@ -58,7 +58,7 @@ const char *WIDGETS_CONFIGURATION =
 
 
 for widget in conf_dict:
-    signal_names = ":".join([f"{widget['message_name']}_{x}" for x in widget['signal_names']])
+    can_signal_names = ":".join([f"{widget['can_message_name']}_{x}" for x in widget['can_signal_names']])
     widget_label = widget['label']
     type_and_skin = f"{widget['type']}:{(widget['skin'] or 'default')}"
     visible = "yes" if widget['visible'] else "no"
@@ -67,7 +67,7 @@ for widget in conf_dict:
 
     with open(out_conf, 'a') as out_c:
         out_c.write(
-            f"    \"{signal_names},{widget_label},{type_and_skin},{visible},{orientation},{widget['z_index']},"
+            f"    \"{can_signal_names},{widget_label},{type_and_skin},{visible},{orientation},{widget['z_index']},"
             + f"{opts_str}\\n\"\n"
         )
 

@@ -1,7 +1,7 @@
 [
     {
-        "message_name": "WebData_2000",
-        "signal_names": [ "Signal_6" ],
+        "can_message_name": "WebData_2000",
+        "can_signal_names": [ "Signal_6" ],
         "label": "Vehicle Speed",
         "type": "needle_meter",
         "skin": "default",
@@ -13,8 +13,8 @@
         }
     },
     {
-        "message_name": "BlueSquare_7",
-        "signal_names": [ "pos_x", "pos_y", "rotation" ],
+        "can_message_name": "BlueSquare_7",
+        "can_signal_names": [ "pos_x", "pos_y", "rotation" ],
         "label": "CAN Messaging Test",
         "type": "stepped_bar",
         "skin": null,
