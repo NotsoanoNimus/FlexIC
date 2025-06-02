@@ -21,7 +21,7 @@
 
 
 static void
-process_can_frame(struct canfd_frame *frame);
+process_can_frame(struct canfd_frame *frame, ssize_t bytes_received);
 
 
 #if IC_OPT_ID_MAPPING==1
@@ -125,7 +125,7 @@ canbus_listener(void *context)
 #endif   /* IC_OPT_DISABLE_CAN_DETAILS */
 
         /* Now do something with the CAN frame. */
-        process_can_frame(&frame);
+        process_can_frame(&frame, num_bytes);
     }
 
     close(s_fd);
@@ -153,6 +153,8 @@ canbus_status(const ic_err_t status)
 static inline void
 store_signal_value(dbc_signal_t *signal, uint8_t *frame_data, uint8_t frame_len)
 {
+    // MEMDUMP(frame_data, frame_len);
+
     real_time_data_t *rtd = &(signal->real_time_data);
 
     uint64_t value = 0, bit = 0;
@@ -166,7 +168,7 @@ store_signal_value(dbc_signal_t *signal, uint8_t *frame_data, uint8_t frame_len)
             value |= (bit << i);
         } else {
             bit_in_byte = 7 - (bit_index % 8);
-            bit = (frame_data[frame_len - (i / 8)] >> bit_in_byte) & 0x01;
+            bit = (frame_data[bit_index / 8] >> bit_in_byte) & 0x01;
             /* For Motorola, bits are ordered from MSB to LSB. */
             value = (value << 1) | bit;
         }
@@ -188,7 +190,7 @@ store_signal_value(dbc_signal_t *signal, uint8_t *frame_data, uint8_t frame_len)
 
 
 static void
-process_can_frame(struct canfd_frame *frame)
+process_can_frame(struct canfd_frame *frame, ssize_t bytes_received)
 {
     const dbc_message_t *message = NULL;
 
@@ -208,6 +210,15 @@ process_can_frame(struct canfd_frame *frame)
 #if IC_OPT_DISABLE_CAN_DETAILS!=1
     DPRINTLN("INFO:  Received CAN message '%s'", message->name);
 #endif   /* IC_OPT_DISABLE_CAN_DETAILS */
+
+    /* Do not process incomplete messages. */
+    if (bytes_received < message->expected_length) {
+        DPRINTLN("NOTICE:  Dropped frame '%s': shorter than expected message length.", message->name);
+        return;
+    }
+
+    /* Clamp the frame's length to the expected message length by default. */
+    frame->len = message->expected_length;
 
     // TODO: Need to detect multiplexor signals that might be part of this message.
     //    This should only update the rtd if the signal is associated with the current multiplexor channel.

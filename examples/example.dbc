@@ -1,0 +1,84 @@
+VERSION "0.1"
+
+NS_ :
+    NS_DESC_
+    CM_
+    BA_DEF_
+    BA_
+    VAL_
+    CAT_DEF_
+    CAT_
+    FILTER
+    BA_DEF_DEF_
+    EV_DATA_
+    ENVVAR_DATA_
+    SGTYPE_
+    SGTYPE_VAL_
+    BA_DEF_SGTYPE_
+    BA_SGTYPE_
+    SIG_TYPE_REF_
+    VAL_TABLE_
+    SIG_GROUP_
+    SIG_VALTYPE_
+    SIGTYPE_VALTYPE_
+    BO_TX_BU_
+    BA_DEF_REL_
+    BA_REL_
+    BA_DEF_DEF_REL_
+    BU_SG_REL_
+    BU_EV_REL_
+    BU_BO_REL_
+    SG_MUL_VAL_
+
+BS_:
+
+BU_: PC
+
+BO_ 7 BlueSquare_7: 6 Vector__XXX
+    SG_ pos_x : 0|16@1+ (1,20) [0|800] "" Vector__XXX
+    SG_ pos_y : 16|16@0+ (1,40) [0|400] "" Vector__XXX
+    SG_ rotation : 32|16@1- (1,-180) [-180|180] "deg" Vector__XXX
+
+BO_ 2000 WebData_2000: 4 Vector__XXX
+    SG_ Signal_8 : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+    SG_ Signal_7 : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+    SG_ Signal_6 : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+    SG_ Signal_5 : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 1840 WebData_1840: 4 PC
+    SG_ Signal_4 : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+    SG_ Signal_3 : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+    SG_ Signal_2 : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+    SG_ Signal_1 : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 3040 WebData_3040: 8 Vector__XXX
+    SG_ Signal_6 m2 : 0|4@1+ (1,0) [0|15] "" Vector__XXX
+    SG_ Signal_5 m3 : 16|8@1+ (1,0) [0|255] "kmh" Vector__XXX
+    SG_ Signal_4 m3 : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+    SG_ Signal_3 m3 : 0|4@1+ (1,0) [0|3] "" Vector__XXX
+    SG_ Signal_2 m1 : 3|12@0+ (1,0) [0|4095] "Byte" Vector__XXX
+    SG_ Signal_1 m0 : 0|4@1+ (1,0) [0|7] "Byte" Vector__XXX
+    SG_ Switch M : 4|4@1+ (1,0) [0|3] "" Vector__XXX
+
+EV_ Environment1: 0 [0|220] "" 0 6 DUMMY_NODE_VECTOR0 DUMMY_NODE_VECTOR2;
+EV_ Environment2: 0 [0|177] "" 0 7 DUMMY_NODE_VECTOR1 DUMMY_NODE_VECTOR2;
+ENVVAR_DATA_ SomeEnvVarData: 399;
+
+CM_ BO_ 0 "IC_VEHICLE_DBC_COMPILED_BY:Zack Puhl (@NotsoanoNimus) <github@xmit.xyz>";
+CM_ BO_ 0 "IC_VEHICLE_NAME:2005 Chevy Colorado";
+CM_ BO_ 0 "IC_VEHICLE_SHORT_NAME:05_Colorado";
+CM_ BO_ 0 "IC_VEHICLE_VERSION:1.0";
+CM_ BO_ 1840 "THIS EXAMPLE FILE IS FROM THE RUST DBC PARSER DOCS (something like that, or somewhere adjacent to it)";
+CM_ SG_ 1840 Signal_4 "asaklfjlsdfjlsdfgls
+HH?=(%)/&KKDKFSDKFKDFKSDFKSDFNKCnvsdcvsvxkcv";
+CM_ SG_ 5 TestSigLittleUnsigned1 "asaklfjlsdfjlsdfgls
+=0943503450KFSDKFKDFKSDFKSDFNKCnvsdcvsvxkcv";
+
+BA_DEF_DEF_ "BusType" "AS";
+
+BA_ "Attr" BO_ 4358435 283;
+BA_ "Attr" BO_ 56949545 344;
+
+VAL_ 2000 Signal_3 255 "NOP";
+
+SIG_VALTYPE_ 2000 Signal_8 : 1;

@@ -301,11 +301,13 @@ fn gen_src_dbc_structs(dbc: &DBC) -> Result<(String, String), Error>
     {{
         .id = 0x{0:x},
         .name = "{1}",
-        .signals = (dbc_signal_t *[]){{{2} }},
-        .num_signals = {3}
+        .expected_length = {2},
+        .signals = (dbc_signal_t *[]){{{3} }},
+        .num_signals = {4}
     }},"#,
                     msg_id,
                     message.message_name().chars().map(name_filter).collect::<String>(),
+                    message.message_size(),
                     signal_refs,
                     signal_at - signal_freeze,
                 ).as_str()

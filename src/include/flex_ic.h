@@ -95,6 +95,7 @@ struct {
 // TODO: Organize fields.
 struct dbc_message {
     uint32_t id;
+    uint32_t expected_length;
     const char *name;
     dbc_signal_t **signals;
     uint32_t num_signals;
