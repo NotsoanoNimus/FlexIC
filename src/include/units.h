@@ -37,6 +37,19 @@ enum {
     UnitPetabytes,
     UnitPebibytes,
 
+    UnitVolts,
+    UnitAmperes,
+    UnitResistance,
+    UnitCapacity,
+    UnitPower,
+
+    UnitSeconds,
+    UnitMinutes,
+    UnitHours,
+    UnitDays,
+
+    UnitPercentage,
+
     UnitRaw,
 } unit_type_t;
 

@@ -17,6 +17,7 @@ pub enum InferredUnitType
 
     RevolutionsPerMinute,
 
+    // TODO: Metric prefixes need to be separated from the unit type.
     Bytes,
     Kilobytes,
     Kibibytes,
@@ -28,6 +29,19 @@ pub enum InferredUnitType
     Tebibytes,
     Petabytes,
     Pebibytes,
+
+    Volts,
+    Amperes,
+    Resistance,
+    Capacity,
+    Power,
+
+    Seconds,
+    Minutes,
+    Hours,
+    Days,
+
+    Percentage,
 
     Raw,
 }
@@ -65,6 +79,19 @@ impl FromStr for InferredUnitType
             "tib" | "tebibyte" | "tebibytes" | "tebibytes per second" | "tib/s" => Ok(InferredUnitType::Tebibytes),
             "pb" | "petabyte" | "petabytes" | "petabytes per second" | "pb/s" => Ok(InferredUnitType::Petabytes),
             "pib" | "pebibyte" | "pebibytes" | "pebibytes per second" | "pib/s" => Ok(InferredUnitType::Pebibytes),
+
+            "v" | "volts" | "voltage" => Ok(InferredUnitType::Volts),
+            "a" | "amps" | "amperes" | "current" => Ok(InferredUnitType::Amperes),
+            "o" | "ohms" | "resistance" => Ok(InferredUnitType::Resistance),
+            "wh" => Ok(InferredUnitType::Capacity),
+            "w" | "watts" => Ok(InferredUnitType::Power),
+
+            "s" | "sec" | "seconds" => Ok(InferredUnitType::Seconds),
+            "m" | "min" | "minutes" => Ok(InferredUnitType::Minutes),
+            "h" | "hr" | "hours" => Ok(InferredUnitType::Hours),
+            "days" => Ok(InferredUnitType::Days),
+
+            "%" | "percent" | "percentage" => Ok(InferredUnitType::Percentage),
 
             "" | "unknown" | "raw" | "?" => Ok(InferredUnitType::Raw),
 
