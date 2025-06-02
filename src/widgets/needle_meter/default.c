@@ -88,14 +88,14 @@ internal__render_basic_tachometer()
 static void
 needle_meter__default__update(widget_t *self)
 {
-    // TODO: Testing. Remove.
-    for (int i = 0; i < self->num_parent_signals; ++i) {
-        if (self->parent_signals[i]->real_time_data.has_update) {
-            DPRINTLN("[%s] SIGNAL RAW DATA (CHANNEL%u: %s): ", self->label, i, self->parent_signals[i]->name);
-            MEMDUMP(&(self->parent_signals[i]->real_time_data.value), 8);
-            // MY_X = *(uint16_t *)(CHANNEL(0).data);
-        }
-    }
+    // // TODO: Testing. Remove.
+    // for (int i = 0; i < self->num_parent_signals; ++i) {
+    //     if (self->parent_signals[i]->real_time_data.has_update) {
+    //         DPRINTLN("[%s] SIGNAL RAW DATA (CHANNEL%u: %s): ", self->label, i, self->parent_signals[i]->name);
+    //         MEMDUMP(&(self->parent_signals[i]->real_time_data.value), 8);
+    //         // MY_X = *(uint16_t *)(CHANNEL(0).data);
+    //     }
+    // }
 
     // TODO: DELETE
     if (!ScreenW) ScreenW = GetScreenWidth();
@@ -104,7 +104,7 @@ needle_meter__default__update(widget_t *self)
 
 
 static void
-needle_meter__default__draw(widget_t *self)
+needle_meter__default__draw(widget_t *self, const renderer_t *renderer)
 {
     internal__render_basic_tachometer();
 }

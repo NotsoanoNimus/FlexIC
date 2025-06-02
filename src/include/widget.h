@@ -32,7 +32,8 @@ void (*_func__widget_update)(
 /* Widget renderer method to draw a display item inside the renderer loop. */
 typedef
 void (*_func__widget_draw)(
-    widget_t *self
+    widget_t *self,
+    const renderer_t *renderer
 );
 
 /* Widget state. */

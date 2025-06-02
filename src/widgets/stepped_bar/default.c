@@ -26,7 +26,7 @@ stepped_bar__default__update(widget_t *self)
 
 
 static void
-stepped_bar__default__draw(widget_t *self)
+stepped_bar__default__draw(widget_t *self, const renderer_t *renderer)
 {
     // TODO: Just an example.
     DrawRectanglePro(

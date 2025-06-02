@@ -19,7 +19,7 @@ needle_meter__minimalistic__update(widget_t *self)
 
 
 static void
-needle_meter__minimalistic__draw(widget_t *self)
+needle_meter__minimalistic__draw(widget_t *self, const renderer_t *renderer)
 {
     DrawEllipse(300, 300, 20, 80, RAYWHITE);
 }

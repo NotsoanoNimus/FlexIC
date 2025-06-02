@@ -50,8 +50,6 @@ const renderer_t *global_renderer = &renderer;
 static ic_err_t
 raylib_render_init(const renderer_t *self)
 {
-    ic_err_t config_status = ERR_OK;
-
 #if IC_OPT_FULL_SCREEN==1
     SetConfigFlags(FLAG_FULLSCREEN_MODE);
     InitWindow(GetScreenWidth(), GetScreenHeight(), renderer.title);
@@ -122,7 +120,7 @@ raylib_render_loop(const renderer_t *self)
 
         /* Widget render (no value updates). */
         for (int i = 0; i < num_global_widgets; ++i)
-            global_widgets[i]->draw(global_widgets[i]);
+            global_widgets[i]->draw(global_widgets[i], self);
 
         /* After drawing all widgets, clear all 'has_update' flags. This will require an atomic operation... */
         if (CAN.has_update) {
