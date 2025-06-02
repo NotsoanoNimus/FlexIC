@@ -46,6 +46,10 @@
             },
             "z_index": 2,
             "options": {
+                "span_degrees": 240,
+                "span_start": 135,
+                "test": "",
+                "generic_comment": "This is a test of arg parsing functionality."
             }
         },
         {

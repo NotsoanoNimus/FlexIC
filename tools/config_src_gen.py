@@ -157,7 +157,7 @@ for widget in conf_dict['widgets']:
     type_and_skin = f"{widget['type']}:{(widget['skin'] or 'default')}"
     visible = "yes" if widget['visible'] else "no"
     orientation = f"{widget['position']['x']},{widget['position']['y']},{widget['dimensions']['width']},{widget['dimensions']['height']}"
-    opts_str = "placeholder"   # TODO!
+    opts_str = (";".join([f"{key}={widget['options'][key]}" for key in widget['options'].keys()]) or "EMPTY") + ";"
 
     with open(out_conf, 'a') as out_c:
         out_c.write(

@@ -329,21 +329,31 @@ load_widgets(char *mutable_configuration)
 
             /* Create the params/args details for the new widget from the options string (delimited by ':'). */
             int argc = 0;
-            char **argv = NULL;
+            key_value_t **argv = NULL;
 
-            char *token = strtok(widget_opts, ":");
+            char *token = strtok(widget_opts, ";");
+            int token_length = 0;
             if (NULL != token) {
-                argv = malloc(1);   /* placeholder */
+                argv = malloc(sizeof(key_value_t *));   /* placeholder - not actually supposed to do anything */
                 if (NULL == argv) return ERR_OUT_OF_RESOURCES;
 
                 do {
-                    char **temp_argv = realloc(argv, sizeof(char *) * (argc + 1));
+                    token_length = strlen(token);
+
+                    key_value_t **temp_argv = realloc(argv, sizeof(key_value_t *) * (argc + 1));
                     if (NULL == temp_argv) return ERR_OUT_OF_RESOURCES;
                     argv = temp_argv;
 
-                    argv[argc] = strdup(token);
+                    argv[argc] = malloc(sizeof(key_value_t));
+                    if (NULL == argv[argc]) return ERR_OUT_OF_RESOURCES;
+
+                    argv[argc]->key = strdup(strtok(token, "="));
+
+                    char *arg_value = strtok(NULL, "=");
+                    argv[argc]->value = NULL != arg_value ? strdup(arg_value) : NULL;
+
                     ++argc;
-                } while (NULL != (token = strtok(NULL, ":")));
+                } while (NULL != (token = strtok(&token[token_length + 1], ";")));
             }
 
             new_widget->argc = argc;
@@ -352,7 +362,7 @@ load_widgets(char *mutable_configuration)
 #if IC_DEBUG==1
             DPRINTLN("Line %u parameters (%u):", line_num, argc);
             for (int i = 0; i < argc; i++) {
-                DPRINTLN("\t>>> arg[%02u]:  '%s'", i, argv[i]);
+                DPRINTLN("\t>>> arg[%02u]:  '%s' = '%s'", i, argv[i]->key, argv[i]->value);
             }
 #endif   /* IC_DEBUG */
 
@@ -445,6 +455,21 @@ set_hooks_for_skin(
         );
         exit(EXIT_FAILURE);
     }
+}
+
+
+char *
+get_option_by_key(widget_t *self, const char *name)
+{
+    for (int i = 0; i < self->argc; i++) {
+        if (NULL == self->argv[i]) return NULL;   /* apparent end of list */
+
+        if (0 != strcmp(name, self->argv[i]->key)) continue;
+
+        return self->argv[i]->value;
+    }
+
+    return NULL;
 }
 
 

@@ -46,6 +46,12 @@ struct {
     volatile void *internal;   /* state object custom to the widget instance and type */
 } widget_state_t;
 
+/* Named parameter (key-value) wrapper type for strings. */
+typedef
+struct {
+    char *key;
+    char *value;
+} key_value_t;
 
 /* Widget renderer main 'object'. */
 struct widget
@@ -56,7 +62,7 @@ struct widget
     const char *label;
     const char *type;
     int argc;
-    char **argv;
+    key_value_t **argv;
     char *skin_name;
     dbc_signal_t **parent_signals;
     uint32_t num_parent_signals;
@@ -109,6 +115,8 @@ void set_hooks_for_skin(
     _func__widget_draw draw_hook,
     _func__widget_parse_args parse_args_hook
 );
+
+char *get_option_by_key(widget_t *self, const char *name);
 
 
 
