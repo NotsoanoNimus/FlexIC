@@ -13,6 +13,12 @@
 #include <string.h>
 #include <time.h>
 
+/* NOTE: Don't really need this when the loading hook is a linked symbol anyway. */
+// #ifdef IC_OPT_LOADING_HOOK_NAME
+//     typedef void (*_func__renderer_loading_hook)(const renderer_t *self);
+//     extern _func__renderer_loading_hook IC_OPT_LOADING_HOOK_NAME;
+// #endif   /* IC_OPT_LOADING_HOOK_NAME */
+
 
 /* Raylib-specific rendering methods. */
 static ic_err_t
@@ -64,6 +70,10 @@ raylib_render_init(const renderer_t *self)
 static void
 raylib_render_loading(const renderer_t *self)
 {
+#ifdef IC_OPT_LOADING_HOOK_NAME
+    IC_OPT_LOADING_HOOK_NAME(self)
+#endif   /* IC_OPT_LOADING_HOOK_NAME */
+
     return;
 }
 

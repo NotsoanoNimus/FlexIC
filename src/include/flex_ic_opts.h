@@ -62,6 +62,18 @@
  */
 #define IC_OPT_NOSTDLIB         0
 
+/*
+ * Defines the symbol name of a one-time splash screen hook that displays a logo or animation
+ *  when the application first starts. This can be defined in its own file under the 'custom'
+ *  source directory.
+ *
+ * The expected function prototype to be used for this is:
+ * ```
+ * typedef void (*_func__renderer_loading_hook)(const renderer_t *self);
+ * ```
+ */
+#undef IC_OPT_LOADING_HOOK_NAME
+
 
 
 #endif   /* FLEX_IC_OPTS_H */
