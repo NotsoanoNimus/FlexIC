@@ -1,28 +1,75 @@
-[
-    {
-        "can_message_name": "WebData_2000",
-        "can_signal_names": [ "Signal_6" ],
-        "label": "Vehicle Speed",
-        "type": "needle_meter",
-        "skin": "default",
-        "visible": true,
-        "position": { "x": 20, "y": 20 },
-        "dimensions": { "width": 200, "height": 200 },
-        "z_index": 2,
-        "options": {
+{
+    "fps_limit": 60,
+    "full_screen": false,
+    "window_title": "FlexIC, by NotsoanoNimus",
+    "dimensions": {
+        "width": 800,
+        "height": 400
+    },
+    "background": {
+        "uses_gradient":  true,
+        "colors": {
+            "top_left": "dd3211ff",
+            "bottom_left": "ffaeccff",
+            "top_right": "114482ff",
+            "bottom_right": "98aaedff"
         }
     },
-    {
-        "can_message_name": "BlueSquare_7",
-        "can_signal_names": [ "pos_x", "pos_y", "rotation" ],
-        "label": "CAN Messaging Test",
-        "type": "stepped_bar",
-        "skin": null,
-        "visible": true,
-        "position": { "x": 320, "y": 100 },
-        "dimensions": { "width": 40, "height": 50 },
-        "z_index": 3,
-        "options": {
+    "can": {
+        "interface_name": "vcan0",
+        "enable_can_fd": false,
+        "use_fast_id_mapping": true
+    },
+    "debug": {
+        "disable_render_time_reporting": true,
+        "disable_can_message_details": true
+    },
+    "use_stdlib": true,
+    "loading_hook_func_name": null,
+    "widgets": [
+        {
+            "can_message_name": "WebData_2000",
+            "can_signal_names": [
+                "Signal_6"
+            ],
+            "label": "Vehicle Speed",
+            "type": "needle_meter",
+            "skin": null,
+            "visible": true,
+            "position": {
+                "x": 20,
+                "y": 20
+            },
+            "dimensions": {
+                "width": 200,
+                "height": 200
+            },
+            "z_index": 2,
+            "options": {
+            }
+        },
+        {
+            "can_message_name": "BlueSquare_7",
+            "can_signal_names": [
+                "pos_x",
+                "pos_y",
+                "rotation"
+            ],
+            "label": "CAN Messaging Test",
+            "type": "stepped_bar",
+            "skin": null,
+            "visible": true,
+            "position": {
+                "x": 320,
+                "y": 100
+            },
+            "dimensions": {
+                "width": 40,
+                "height": 50
+            },
+            "z_index": 3,
+            "options": {
+            }
         }
-    }
-]
+    ]
+}

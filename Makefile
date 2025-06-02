@@ -5,11 +5,13 @@ CFLAGS		:= -O2
 VEHICLE		:= 2005_chevrolet_colorado
 DBC_FILE	:= dbc/$(VEHICLE).dbc
 
+BASE_DIR	= $(shell pwd)
 BUILD_DIR	= build
 GEN_DIR		= $(BUILD_DIR)/gen
-GEN_PROJ_DIR= ./tools/fast_dbc_to_c
+GEN_PROJ_DIR= $(BASE_DIR)/tools/fast_dbc_to_c
 VEHICLE_H	= $(GEN_DIR)/vehicle.h
 VEHICLE_C	= $(GEN_DIR)/vehicle.c
+IC_OPTS_H	= $(GEN_DIR)/flex_ic_opts.h
 CONFIG_C	= $(GEN_DIR)/config.c
 
 TARGET		:= $(BUILD_DIR)/flexic
@@ -31,7 +33,7 @@ IC_DEBUG		:= 0
 .PHONY: all debug dbc
 
 
-all: $(BUILD_DIR) $(GEN_DIR) $(WIDGETS_DIR) $(VEHICLE_H) $(VEHICLE_C) $(CONFIG_C) $(RENDERER_SRC)
+all: $(GEN_DIR) $(VEHICLE_H) $(VEHICLE_C) $(CONFIG_C) $(IC_OPTS_H) $(RENDERER_SRC)
 	$(CC) $(CFLAGS) \
 		-DIC_WIDGETS=\"$(WIDGETS)\" -DIC_DEBUG=$(IC_DEBUG) $(WIDGET_FACTORIES) \
 		-I$(INC_DIR) -I$(GEN_DIR) -o $(TARGET) \
@@ -49,28 +51,27 @@ clean:
 
 dbc:
 ifeq ($(DBC),)
-	$(error You need to specify a full path to a DBC file; e.g. "make all DBC=`pwd`/dbc/my_car.dbc")
+	$(error You need to specify a full path to a DBC file; e.g. "make all DBC=$(BASE_DIR)/dbc/my_car.dbc")
 endif
-	$(shell ( T_PWD=$(shell pwd) && >&2 cd $(GEN_PROJ_DIR) && >&2 cargo run "$(DBC)" "$${T_PWD}/build/gen" yes ) \
+	$(shell ( >&2 cd $(GEN_PROJ_DIR) && >&2 cargo run "$(DBC)" "$(BASE_DIR)/$(GEN_DIR)" yes ) \
 		|| { echo >&2 ERROR: Failed to run cargo generation. && kill $$PPID; })
 
 
 config: $(WIDGET_CONFIG)
 ifeq ($(WIDGET_CONFIG),)
-	$(error A widget configuration has not been generated. You must specify a path to your widget configuration; e.g. "make all WIDGET_CONFIG=/etc/widgets.ic_config")
+	$(error Configuration sources have not been generated. You must specify a path to your configuration JSON; e.g. "make all WIDGET_CONFIG=/etc/flex_ic/dash1.json")
 endif
-	$(shell ( >&2 ./tools/config_src_gen.py "$(WIDGET_CONFIG)" "`pwd`/$(CONFIG_C)" ) \
+	$(shell ( >&2 ./tools/config_src_gen.py "$(WIDGET_CONFIG)" "$(BASE_DIR)/$(GEN_DIR)" ) \
 		|| { echo >&2 ERROR: Failed to run config source generator. && kill $$PPID; })
 
 
 $(BUILD_DIR):
-	-@mkdir -p $(BUILD_DIR) &>/dev/null
-
 $(GEN_DIR):
 	-@mkdir -p $(GEN_DIR) &>/dev/null
 
 $(WIDGETS_DIR):
 	-@mkdir -p $(WIDGETS_DIR) &>/dev/null
+
 
 $(VEHICLE_H):
 $(VEHICLE_C):
@@ -78,6 +79,7 @@ $(VEHICLE_C):
 	@$(MAKE) dbc
 
 
+$(IC_OPTS_H):
 $(CONFIG_C):
-	$(info You need to pre-compile a widgets configuration. Trying that...)
+	$(info You need to pre-compile a project configuration. Trying that...)
 	@$(MAKE) config WIDGETS_CONFIG=$(WIDGETS_CONFIG)
