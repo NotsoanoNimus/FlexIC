@@ -152,7 +152,7 @@ with open(out_conf, 'w') as out_c:
 
 # Generate the program-specific widgets config string.
 for widget in conf_dict['widgets']:
-    can_signal_names = ":".join([f"{widget['can_message_name']}_{x}" for x in widget['can_signal_names']])
+    can_signal_names = ":".join(widget['can_signal_names'])
     widget_label = widget['label']
     type_and_skin = f"{widget['type']}:{(widget['skin'] or 'default')}"
     visible = "yes" if widget['visible'] else "no"
