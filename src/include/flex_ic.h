@@ -26,6 +26,9 @@
 #define CLAMP(val, min, max) \
     ((val) > (max) ? (max) : ((val) < (min) ? (min) : (val)))
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 
 #if IC_DEBUG==1
 #define DPRINTLN(x, ...) \
@@ -41,6 +44,13 @@
 #define DPRINT(x, ...)
 #define MEMDUMP(ptr, len)
 #endif   /* IC_DEBUG */
+
+
+inline unsigned char hex_to_value(char *str)
+{
+    return (unsigned char)((str[0] > '9' ? (str[0] - 'a' + 10) : (str[0] - 0x30)) << 4)
+        | ((str[1] > '9' ? (str[1] - 'a' + 10) : (str[1] - 0x30)) & 0x0f);
+}
 
 
 /* Error definitions. */
