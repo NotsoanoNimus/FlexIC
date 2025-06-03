@@ -26,6 +26,13 @@ needle_meter__minimalistic__draw(widget_t *self, const renderer_t *renderer)
 
 
 static ic_err_t
+needle_meter__minimalistic__init(widget_t *self, const renderer_t *renderer)
+{
+    return ERR_OK;
+}
+
+
+static ic_err_t
 needle_meter__minimalistic__parse_args(widget_t *self)
 {
     return ERR_OK;

@@ -27,11 +27,18 @@ ic_err_t (*_func__widget_parse_args)(
 typedef
 void (*_func__widget_update)(
     widget_t *self
-);
+    );
 
 /* Widget renderer method to draw a display item inside the renderer loop. */
 typedef
 void (*_func__widget_draw)(
+    widget_t *self,
+    const renderer_t *renderer
+    );
+
+/* Widget renderer method to draw a display item inside the renderer loop. */
+typedef
+ic_err_t (*_func__widget_init)(
     widget_t *self,
     const renderer_t *renderer
 );
@@ -59,6 +66,7 @@ struct widget
 {
     _func__widget_update        update;
     _func__widget_draw          draw;
+    _func__widget_init          init;
 
     const char *label;
     const char *type;
@@ -67,6 +75,7 @@ struct widget
     char *skin_name;
     dbc_signal_t **parent_signals;
     uint32_t num_parent_signals;
+    bool draw_outline;
     widget_state_t state;
 };
 
@@ -102,6 +111,7 @@ extern const char *widget_default_skin_name;
         AS_LITERAL(name), \
         widget##__##name##__update, \
         widget##__##name##__draw, \
+        widget##__##name##__init, \
         widget##__##name##__parse_args \
     );
 
@@ -114,10 +124,16 @@ void set_hooks_for_skin(
     const char *skin_name,
     _func__widget_update update_hook,
     _func__widget_draw draw_hook,
+    _func__widget_init init_hook,
     _func__widget_parse_args parse_args_hook
 );
 
 char *get_option_by_key(widget_t *self, const char *name);
+
+#define OPTION_OR_DIE(option_name) \
+    name = option_name; \
+    option = get_option_by_key(self, option_name); \
+    if (NULL == option) goto param_error;
 
 
 

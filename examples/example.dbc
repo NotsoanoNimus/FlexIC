@@ -39,6 +39,9 @@ BO_ 7 BlueSquare_7: 6 Vector__XXX
     SG_ pos_y : 16|16@0+ (1,40) [0|400] "" Vector__XXX
     SG_ rotation : 32|16@1- (1,-180) [-180|180] "deg" Vector__XXX
 
+BO_ 580 ICSim_580: 5 Vector__XXX
+    SG_ Signal_Speed : 24|16@0+ (0.01,0.6213751) [0|63353] "" Vector_XXX
+
 BO_ 2000 WebData_2000: 4 Vector__XXX
     SG_ Signal_8 : 24|8@1+ (1,0) [0|255] "" Vector__XXX
     SG_ Signal_7 : 16|8@1+ (1,0) [0|255] "" Vector__XXX

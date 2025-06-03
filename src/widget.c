@@ -25,7 +25,7 @@
 
 #define CHECK_STRTOL(property) \
     if (*endptr) { \
-        fprintf(stderr, "ERROR:  Configuration(line %u): Invalid integer value of '" #property " (value '%s')'.\n", line_num, property); \
+        fprintf(stderr, "ERROR:  Configuration(line %u): Invalid numeric value of '" #property " (value '%s')'.\n", line_num, property); \
         return ERR_INVALID_CONFIGURATION; \
     }
 
@@ -252,7 +252,9 @@ load_widgets(char *mutable_configuration)
         DEFINE_STRTOK_CSV(y_pos);
         DEFINE_STRTOK_CSV(width);
         DEFINE_STRTOK_CSV(height);
+        DEFINE_STRTOK_CSV(rotation);
         DEFINE_STRTOK_CSV(z_index);
+        DEFINE_STRTOK_CSV(draws_outline);
         DEFINE_STRTOK_CSV(widget_opts);
 
         /* Debugging information only; will not show in non-debug builds. */
@@ -265,7 +267,9 @@ load_widgets(char *mutable_configuration)
         CONF_SUMMARIZE(y_pos);
         CONF_SUMMARIZE(width);
         CONF_SUMMARIZE(height);
+        CONF_SUMMARIZE(rotation);
         CONF_SUMMARIZE(z_index);
+        CONF_SUMMARIZE(draws_outline);
         CONF_SUMMARIZE(widget_opts);
 
         /* Quickly get the skin name, if defined. */
@@ -318,7 +322,9 @@ load_widgets(char *mutable_configuration)
         new_widget->state.resolution.y = (int)strtol(height, &endptr, 10);  CHECK_STRTOL(height);
         new_widget->state.position.x = (int)strtol(x_pos, &endptr, 10);     CHECK_STRTOL(x_pos);
         new_widget->state.position.y = (int)strtol(y_pos, &endptr, 10);     CHECK_STRTOL(y_pos);
+        new_widget->state.rotation = (float)strtof(rotation, &endptr);           CHECK_STRTOL(rotation);
         new_widget->state.z_index = (int)strtol(z_index, &endptr, 10);      CHECK_STRTOL(z_index);
+        new_widget->draw_outline = (0 == strcmp(draws_outline, "yes"));
 
         /* Locate the factory method for the widget_type. */
         bool created = false;
@@ -396,6 +402,7 @@ load_widgets(char *mutable_configuration)
         free(y_pos);
         free(width);
         free(height);
+        free(rotation);
         free(z_index);
         free(widget_opts);
     } while (NULL != (line = strtok(&line[line_len + 1], "\n")));
@@ -438,12 +445,14 @@ set_hooks_for_skin(
     const char *skin_name,
     _func__widget_update update_hook,
     _func__widget_draw draw_hook,
+    _func__widget_init init_hook,
     _func__widget_parse_args parse_args_hook
 ) {
     if (0 != strcasecmp(skin_name, self->skin_name)) return;
 
     self->draw = draw_hook;
     self->update = update_hook;
+    self->init = init_hook;
 
     /* Parse skin-specific arguments/options. */
     ic_err_t args_status = ERR_OK;

@@ -17,6 +17,9 @@
 #   include <stdlib.h>
 #endif   /* IC_OPT_NOSTDLIB */
 
+#include <float.h>
+#include <math.h>
+
 #include "vehicle.h"
 
 
@@ -172,6 +175,14 @@ extern dbc_t DBC;
         } \
     }
 
+
+inline bool is_multiple(float numerator, float divisor)
+{
+    if (divisor == 0) return false;
+
+    float tolerance = FLT_EPSILON * fmax(fabs(numerator), fabs(divisor));
+    return fabs(fmod(numerator, divisor)) <= tolerance;
+}
 
 
 #endif   /* FLEX_IC_H */

@@ -156,12 +156,14 @@ for widget in conf_dict['widgets']:
     widget_label = widget['label']
     type_and_skin = f"{widget['type']}:{(widget['skin'] or 'default')}"
     visible = "yes" if widget['visible'] else "no"
-    orientation = f"{widget['position']['x']},{widget['position']['y']},{widget['dimensions']['width']},{widget['dimensions']['height']}"
+    orientation = f"{widget['position']['x']},{widget['position']['y']},{widget['dimensions']['width']},{widget['dimensions']['height']},{widget['rotation']}"
+    draw_outline = "yes" if widget['draw_boundary_outline'] else "no"
+
     opts_str = (";".join([f"{key}={widget['options'][key]}" for key in widget['options'].keys()]) or "EMPTY") + ";"
 
     with open(out_conf, 'a') as out_c:
         out_c.write(
-            f"    \"{can_signal_names},{widget_label},{type_and_skin},{visible},{orientation},{widget['z_index']},"
+            f"    \"{can_signal_names},{widget_label},{type_and_skin},{visible},{orientation},{widget['z_index']},{draw_outline},"
             + f"{opts_str}\\n\"\n"
         )
 

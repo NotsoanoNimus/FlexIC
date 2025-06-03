@@ -39,6 +39,13 @@ stepped_bar__default__draw(widget_t *self, const renderer_t *renderer)
 
 
 static ic_err_t
+stepped_bar__default__init(widget_t *self, const renderer_t *renderer)
+{
+    return ERR_OK;
+}
+
+
+static ic_err_t
 stepped_bar__default__parse_args(widget_t *self)
 {
     return ERR_OK;

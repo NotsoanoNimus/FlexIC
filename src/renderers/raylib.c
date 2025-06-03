@@ -79,9 +79,22 @@ raylib_render_loading(const renderer_t *self)
 static void
 raylib_render_loop(const renderer_t *self)
 {
+    RenderTexture2D outline_texture = LoadRenderTexture(self->resolution.x, self->resolution.y);
+
     if (0 == num_global_widgets || NULL == global_widgets) {
         fprintf(stderr, "ERROR: Empty or NULL global_widgets.\n");
         return;
+    }
+
+    /* Pre-init all widgets (for those that have a hook for it). */
+    bool any_outlines = false;
+
+    for (int i = 0; i < num_global_widgets; ++i) {
+        if (global_widgets[i]->draw_outline) any_outlines = true;
+
+        if (NULL == global_widgets[i]->init) continue;
+
+        global_widgets[i]->init(global_widgets[i], self);
     }
 
 #if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1
@@ -102,6 +115,30 @@ raylib_render_loop(const renderer_t *self)
         BeginDrawing();
 
         ClearBackground((Color)IC_OPT_BG_TOP_LEFT_RGBA);
+
+        // TODO: Warn many times that rendering these with "draw_boundary_outline" is SLOW!!!
+        if (any_outlines) {
+            BeginTextureMode(outline_texture);
+            ClearBackground((Color){0,0,0,0});
+
+            for (int i = 0; i < num_global_widgets; ++i) {
+                if (!global_widgets[i]->draw_outline) continue;
+
+                /* Add a red box around the boundary of the widget to outline it. */
+                DrawRectangleLinesEx(
+                    (Rectangle){
+                        (float)global_widgets[i]->state.position.x,
+                        (float)global_widgets[i]->state.position.y,
+                        (float)global_widgets[i]->state.resolution.x,
+                        (float)global_widgets[i]->state.resolution.y,
+                    },
+                    3.0f,
+                    RED
+                );
+            }
+
+            EndTextureMode();
+        }
 
 #if IC_OPT_BG_STATIC!=1
         DrawRectangleGradientEx(
@@ -136,6 +173,17 @@ raylib_render_loop(const renderer_t *self)
             pthread_mutex_lock(&CAN.lock);
             CAN.has_update = false;
             pthread_mutex_unlock(&CAN.lock);
+        }
+
+        if (any_outlines) {
+            DrawTexturePro(
+                outline_texture.texture,
+                (Rectangle){ 0, 0, (float)self->resolution.x, -(float)self->resolution.y },
+                (Rectangle){ 0, 0, (float)self->resolution.x, (float)self->resolution.y },
+                (Vector2){ 0, 0 },
+                0.0f,
+                WHITE
+            );
         }
 
 #if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1

@@ -21,48 +21,75 @@
         "use_fast_id_mapping": true
     },
     "debug": {
-        "disable_render_time_reporting": true,
+        "disable_render_time_reporting": false,
         "disable_can_message_details": true
     },
     "use_stdlib": true,
     "loading_hook_func_name": null,
     "widgets": [
         {
-            "can_message_name": "WebData_2000",
             "can_signal_names": [
-                "Signal_6"
+                "ICSim_580_Signal_Speed"
             ],
             "label": "Vehicle Speed",
             "type": "needle_meter",
             "skin": null,
             "visible": true,
+            "z_index": 2,
+            "rotation": 0.0,
+            "draw_boundary_outline": false,
             "position": {
                 "x": 20,
                 "y": 20
             },
             "dimensions": {
-                "width": 200,
-                "height": 200
+                "width": 350,
+                "height": 300
             },
-            "z_index": 2,
             "options": {
-                "span_degrees": 240,
-                "span_start": 135,
-                "test": "",
-                "generic_comment": "This is a test of arg parsing functionality."
+                "inner_radius": 20,
+                "segments": 300,
+                "start_angle": -240,
+                "end_angle": 15,
+                "start_angle_ticks": -235,
+                "end_angle_ticks": 10,
+                "minimum_value": 0,
+                "maximum_value": 120,
+                "interval": 15,
+                "sub_interval": 3,
+                "redline_start_value": 80,
+                "redline_fades_in": true,
+                "tick_thickness": 3.5,
+                "sub_tick_thickness": 1.5,
+                "has_labels": true,
+                "label_text_size": 12,
+                "unit_text": "mph",
+                "unit_text_size": 14,
+                "unit_text_position": "62.5%:35.5%",
+                "backdrop_color": "555555ff",
+                "border_color": "dededeff",
+                "tick_color": "dededeff",
+                "text_color": "edededff",
+                "needle_color": "ff5520ff",
+                "needle_pivot_color": "333333ff",
+                "needle_pivot_radius": 14.0,
+                "needle_style": "BEVEL",
+                "needle_scale": 1.0
             }
         },
         {
-            "can_message_name": "BlueSquare_7",
             "can_signal_names": [
-                "pos_x",
-                "pos_y",
-                "rotation"
+                "BlueSquare_7_pos_x",
+                "BlueSquare_7_pos_y",
+                "BlueSquare_7_rotation"
             ],
             "label": "CAN Messaging Test",
             "type": "stepped_bar",
             "skin": null,
             "visible": true,
+            "z_index": 1,
+            "rotation": 0.0,
+            "draw_boundary_outline": false,
             "position": {
                 "x": 320,
                 "y": 100
@@ -71,7 +98,6 @@
                 "width": 40,
                 "height": 50
             },
-            "z_index": 3,
             "options": {
             }
         }
