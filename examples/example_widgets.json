@@ -29,6 +29,56 @@
     "widgets": [
         {
             "can_signal_names": [
+                "ICSim_580_Signal_RPM"
+            ],
+            "label": "Vehicle RPM",
+            "type": "needle_meter",
+            "skin": null,
+            "visible": true,
+            "z_index": 3,
+            "rotation": 0.0,
+            "draw_boundary_outline": false,
+            "position": {
+                "x": 20,
+                "y": 20
+            },
+            "dimensions": {
+                "width": 350,
+                "height": 300
+            },
+            "options": {
+                "inner_radius": 20,
+                "segments": 300,
+                "start_angle": 26,
+                "start_angle_ticks": 30,
+                "end_angle_ticks": 106,
+                "end_angle": 110,
+                "minimum_value": 0,
+                "maximum_value": 8000,
+                "interval": 1000,
+                "sub_interval": 500,
+                "redline_start_value": 6000,
+                "redline_fades_in": true,
+                "tick_thickness": 3,
+                "sub_tick_thickness": 2,
+                "has_labels": false,
+                "label_text_size": 12,
+                "unit_text": "rpm",
+                "unit_text_size": 14,
+                "unit_text_position": "62.5%:82.5%",
+                "backdrop_color": "555555ff",
+                "border_color": "dededeff",
+                "tick_color": "dededeff",
+                "text_color": "edededff",
+                "needle_color": "ff5520ff",
+                "needle_pivot_color": "333333ff",
+                "needle_pivot_radius": 14.0,
+                "needle_style": "BEVEL",
+                "needle_scale": 10.0
+            }
+        },
+        {
+            "can_signal_names": [
                 "ICSim_580_Signal_Speed"
             ],
             "label": "Vehicle Speed",
@@ -50,9 +100,9 @@
                 "inner_radius": 20,
                 "segments": 300,
                 "start_angle": -240,
-                "end_angle": 15,
                 "start_angle_ticks": -235,
                 "end_angle_ticks": 10,
+                "end_angle": 15,
                 "minimum_value": 0,
                 "maximum_value": 120,
                 "interval": 15,

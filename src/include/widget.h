@@ -51,7 +51,7 @@ struct {
     double rotation;
     uint32_t z_index;   /* control widget rendering orders */
     volatile bool visible;   /* whether to draw the widget */
-    volatile void *internal;   /* state object custom to the widget instance and type */
+    void *internal;   /* state object custom to the widget instance and type */
 } widget_state_t;
 
 /* Named parameter (key-value) wrapper type for strings. */
