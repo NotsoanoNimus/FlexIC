@@ -1,18 +1,34 @@
-{
-    "fps_limit": 60,
-    "full_screen": false,
-    "window_title": "FlexIC, by NotsoanoNimus",
-    "dimensions": {
-        "width": 800,
-        "height": 400
-    },
-    "background": {
-        "uses_gradient":  true,
-        "colors": {
-            "top_left": "dd3211ff",
-            "bottom_left": "ffaeccff",
-            "top_right": "114482ff",
-            "bottom_right": "98aaedff"
+    {
+    "window": {
+        "fps_limit": 60,
+        "full_screen": false,
+        "splash_hook_func": null,
+        "title": "FlexIC, by NotsoanoNimus",
+        "pages": 2,
+        "dimensions": {
+            "width": 800,
+            "height": 400
+        },
+        "background": {
+            "type": "ASSET",
+            "asset": {
+                "path": "/home/puhlz/Downloads/4k-carbon-fiber.jpg",
+                "file_type": "jpg",
+                "fit_to_window": false,
+                "offset_x": 0,
+                "offset_y": 0,
+                "tint": "ffffffff"
+            },
+            "color": {
+                "is_gradient": true,
+                "static_color": "ddddddff",
+                "gradient": {
+                    "top_left": "dd3211ff",
+                    "bottom_left": "ffaeccff",
+                    "top_right": "114482ff",
+                    "bottom_right": "98aaedff"
+                }
+            }
         }
     },
     "can": {
@@ -24,8 +40,9 @@
         "disable_render_time_reporting": false,
         "disable_can_message_details": true
     },
-    "use_stdlib": true,
-    "loading_hook_func_name": null,
+    "compilation": {
+        "use_stdlib": true
+    },
     "widgets": [
         {
             "can_signal_names": [
@@ -33,6 +50,7 @@
             ],
             "label": "Vehicle RPM",
             "type": "needle_meter",
+            "page": "main",
             "skin": null,
             "visible": true,
             "z_index": 3,
@@ -70,11 +88,12 @@
                 "border_color": "dededeff",
                 "tick_color": "dededeff",
                 "text_color": "edededff",
-                "needle_color": "ff5520ff",
-                "needle_pivot_color": "333333ff",
                 "needle_pivot_radius": 14.0,
-                "needle_style": "BEVEL",
-                "needle_scale": 10.0
+                "needle_scale": 10.0,
+                "needle_style": "DRAWN",
+                "needle_asset": null,
+                "needle_color": "ff5520ff",
+                "needle_pivot_color": "333333ff"
             }
         },
         {

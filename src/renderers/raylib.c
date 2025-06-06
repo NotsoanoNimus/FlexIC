@@ -13,12 +13,6 @@
 #include <string.h>
 #include <time.h>
 
-/* NOTE: Don't really need this when the loading hook is a linked symbol anyway. */
-// #ifdef IC_OPT_LOADING_HOOK_NAME
-//     typedef void (*_func__renderer_loading_hook)(const renderer_t *self);
-//     extern _func__renderer_loading_hook IC_OPT_LOADING_HOOK_NAME;
-// #endif   /* IC_OPT_LOADING_HOOK_NAME */
-
 
 /* Raylib-specific rendering methods. */
 static ic_err_t
@@ -35,21 +29,24 @@ raylib_render_loop(const renderer_t *self);
  * The primary desktop renderer container.
  *  Controls the rendering of individual widget components.
  */
-static const renderer_t renderer = {
-    .fps_limit = IC_OPT_FPS_LIMIT,
-    .title = IC_OPT_GUI_TITLE,
-    .resolution = { IC_OPT_SCREEN_WIDTH, IC_OPT_SCREEN_HEIGHT },
+static renderer_t renderer = {
     .loop = raylib_render_loop,
-    .loading = raylib_render_loading,
     .init = raylib_render_init,
 };
 
-const renderer_t *global_renderer = &renderer;
+const renderer_t *global_renderer = (const renderer_t *)&renderer;
 
+
+static Texture2D background_texture;
+static Image background_image;
 
 static ic_err_t
 raylib_render_init(const renderer_t *self)
 {
+    renderer.fps_limit = compile_time_ic_options.window.fps_limit;
+    renderer.title = compile_time_ic_options.window.title;
+    renderer.resolution = compile_time_ic_options.window.dimensions;
+
 #if IC_OPT_FULL_SCREEN==1
     SetConfigFlags(FLAG_FULLSCREEN_MODE);
     InitWindow(GetScreenWidth(), GetScreenHeight(), renderer.title);
@@ -61,18 +58,23 @@ raylib_render_init(const renderer_t *self)
 
     SetTargetFPS(renderer.fps_limit);
 
+    if (ASSET == compile_time_ic_options.background_type) {
+        background_image = LoadImageFromMemory(
+            compile_time_ic_options.background_asset.file_type,
+            compile_time_ic_options.background_asset.image_data,
+            compile_time_ic_options.background_asset.image_size
+        );
+
+        if (NULL == background_image.data) {
+            fprintf(stderr, "FATAL: Failed to load background image asset.\n");
+            return ERR_INVALID_CONFIGURATION;
+        }
+
+        background_texture = LoadTextureFromImage(background_image);
+    }
+
     /* OK: Everything initialized with no issues. */
     return ERR_OK;
-}
-
-static void
-raylib_render_loading(const renderer_t *self)
-{
-#ifdef IC_OPT_LOADING_HOOK_NAME
-    IC_OPT_LOADING_HOOK_NAME(self)
-#endif   /* IC_OPT_LOADING_HOOK_NAME */
-
-    return;
 }
 
 
@@ -98,7 +100,7 @@ raylib_render_loop(const renderer_t *self)
     }
 
 #if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1
-    double clock_samples[IC_OPT_FPS_LIMIT] = {0};
+    double *clock_samples = calloc(1, sizeof(double *) * compile_time_ic_options.window.fps_limit);
     int clock_sample_count = 0;
 #endif   /* IC_DEBUG */
 
@@ -114,7 +116,33 @@ raylib_render_loop(const renderer_t *self)
 
         BeginDrawing();
 
-        ClearBackground((Color)IC_OPT_BG_TOP_LEFT_RGBA);
+        ClearBackground(ASSET == compile_time_ic_options.background_type
+            ? BLACK : compile_time_ic_options.background_color.static_color);
+
+        if (ASSET == compile_time_ic_options.background_type) {
+            DrawTexturePro(
+                background_texture,
+                compile_time_ic_options.background_asset.fit_to_window
+                    ? (Rectangle) { 0, 0, background_image.width, background_image.height }
+                    : (Rectangle) {
+                        0,
+                        0,
+                        background_image.width - compile_time_ic_options.background_asset.offset_x,
+                        background_image.height - compile_time_ic_options.background_asset.offset_y
+                    },
+                compile_time_ic_options.background_asset.fit_to_window
+                    ? (Rectangle) { 0, 0, GetScreenWidth(), GetScreenHeight() }
+                    : (Rectangle) {
+                        compile_time_ic_options.background_asset.offset_x,
+                        compile_time_ic_options.background_asset.offset_y,
+                        GetScreenWidth() - compile_time_ic_options.background_asset.offset_x,
+                        GetScreenHeight() - compile_time_ic_options.background_asset.offset_y
+                    },
+                (Vector2) { 0, 0 },
+                0.0f,
+                compile_time_ic_options.background_asset.tint
+            );
+        }
 
         // TODO: Warn many times that rendering these with "draw_boundary_outline" is SLOW!!!
         if (any_outlines) {
@@ -148,10 +176,10 @@ raylib_render_loop(const renderer_t *self)
                 .width = (float)renderer.resolution.x,
                 .height = (float)renderer.resolution.y
             },
-            (Color)IC_OPT_BG_TOP_LEFT_RGBA,
-            (Color)IC_OPT_BG_BOTTOM_LEFT_RGBA,
-            (Color)IC_OPT_BG_TOP_RIGHT_RGBA,
-            (Color)IC_OPT_BG_BOTTOM_RIGHT_RGBA
+            compile_time_ic_options.background_color.gradient_top_left,
+            compile_time_ic_options.background_color.gradient_bottom_left,
+            compile_time_ic_options.background_color.gradient_top_right,
+            compile_time_ic_options.background_color.gradient_bottom_right
         );
 #endif   /* IC_OPT_BG_STATIC */
 
@@ -192,10 +220,10 @@ raylib_render_loop(const renderer_t *self)
         clock_samples[clock_sample_count] = (double)(end - begin) / CLOCKS_PER_SEC;
         ++clock_sample_count;
 
-        if (IC_OPT_FPS_LIMIT == clock_sample_count) {
+        if (compile_time_ic_options.window.fps_limit == clock_sample_count) {
             double time_avg = 0.0f;
-            for (int i = 0; i < IC_OPT_FPS_LIMIT; ++i) time_avg += clock_samples[i];
-            time_avg /= (double)IC_OPT_FPS_LIMIT;
+            for (int i = 0; i < compile_time_ic_options.window.fps_limit; ++i) time_avg += clock_samples[i];
+            time_avg /= (double)compile_time_ic_options.window.fps_limit;
 
             DPRINTLN(">>> Average render time per frame over 1s: %f (%f millis)", time_avg, time_avg * 1000.0f);
 
@@ -209,6 +237,9 @@ raylib_render_loop(const renderer_t *self)
 
         EndDrawing();
     }
+#if IC_DEBUG==1 && IC_OPT_DISABLE_RENDER_TIME!=1
+    free(clock_samples);
+#endif   /* IC_OPT_DISABLE_RENDER_TIME */
 
     CloseWindow();
 }

@@ -7,6 +7,80 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
+#include <raylib.h>
+
+
+/* --- configuration types (sourced in auto-gen files too) --- */
+/* Non-fine (float) points and dimensions. */
+typedef
+struct {
+    int32_t x;
+    int32_t y;
+} vec2_t;
+
+/* One-time splash screen hook on start-up. */
+typedef
+void (*_func__render_splash)(
+    const void *renderer
+);
+
+/* BGCOLOR types. */
+typedef
+enum {
+    COLOR = 1,
+    ASSET
+} ic_background_type;
+
+
+/* Compile-time options structure. */
+typedef
+struct {
+    struct {
+        int fps_limit;
+        vec2_t dimensions;
+        bool full_screen;
+        const char *title;
+    } window;
+
+    _func__render_splash splash_hook_func;
+
+    const char **pages;
+    int num_pages;
+    int default_page_number;
+
+    struct {
+        const char *interface_name;
+        bool enable_fd;
+    } can;
+
+    ic_background_type background_type;
+    union {
+        struct {
+            bool is_gradient;
+            Color static_color;
+            Color gradient_top_left;
+            Color gradient_top_right;
+            Color gradient_bottom_left;
+            Color gradient_bottom_right;
+        } background_color;
+
+        struct {
+            uint8_t *image_data;
+            int image_size;
+            const char *file_type;
+            bool fit_to_window;
+            int offset_x;
+            int offset_y;
+            Color tint;
+        } background_asset;
+    };
+} ic_opts_t;
+
+
+
+/* --- only the auto-generated files should have this set --- */
+#ifndef CONFIG_TYPES_ONLY
 #include <pthread.h>
 
 #include "flex_ic_opts.h"
@@ -185,4 +259,5 @@ inline bool is_multiple(float numerator, float divisor)
 }
 
 
+#endif   /* CONFIG_TYPES_ONLY */
 #endif   /* FLEX_IC_H */

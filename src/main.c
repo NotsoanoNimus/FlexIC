@@ -48,7 +48,7 @@ main(int argc, char **argv)
         .thread_status = ERR_OK,
         .should_close = false,
         .is_listening = false,
-        .can_if_name = IC_OPT_CAN_IF_NAME
+        .can_if_name = compile_time_ic_options.can.interface_name
     };
 
     /* Load the widgets configuration. */
@@ -86,7 +86,9 @@ main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    global_renderer->loading(global_renderer);   /* flashes an intro sequence from the renderer */
+    if (NULL != compile_time_ic_options.splash_hook_func)
+        compile_time_ic_options.splash_hook_func(global_renderer);
+
     global_renderer->loop(global_renderer);   /* noreturn; unless application exit condition */
 
     /* Always wait for the listener to close, if the code reaches these statements. */

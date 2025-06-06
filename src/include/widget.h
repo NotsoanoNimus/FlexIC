@@ -70,6 +70,7 @@ struct widget
 
     const char *label;
     const char *type;
+    uint8_t page;
     int argc;
     key_value_t **argv;
     char *skin_name;

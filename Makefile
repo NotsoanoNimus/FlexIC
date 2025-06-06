@@ -37,7 +37,7 @@ all: $(GEN_DIR) $(VEHICLE_H) $(VEHICLE_C) $(CONFIG_C) $(IC_OPTS_H) $(RENDERER_SR
 	$(CC) $(CFLAGS) \
 		-DIC_WIDGETS=\"$(WIDGETS)\" -DIC_DEBUG=$(IC_DEBUG) $(WIDGET_FACTORIES) \
 		-I$(INC_DIR) -I$(GEN_DIR) -o $(TARGET) \
-		$(VEHICLE_C) $(CONFIG_C) $(RENDERER_SRC) $(WIDGET_SRCS) $(wildcard $(SRC_DIR)/*.c) \
+		$(GEN_DIR)/*.c $(RENDERER_SRC) $(WIDGET_SRCS) $(wildcard $(SRC_DIR)/*.c) \
 		-lpthread $(RENDERER_LIBS)
 
 

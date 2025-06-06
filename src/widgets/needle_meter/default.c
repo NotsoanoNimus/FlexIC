@@ -21,6 +21,13 @@ struct draw_params
     float needle_scale;
     float needle_pivot_radius;
 
+    Color needle_color;
+    Color needle_pivot_color;
+
+    void *needle_asset;
+
+    NeedleStyle needle_style;
+
     float inner_radius;
     float outer_radius;
     float start_angle;
@@ -50,11 +57,8 @@ struct draw_params
     Color border_color;
     Color tick_color;
     Color text_color;
-    Color needle_color;
-    Color needle_pivot_color;
 
-    NeedleStyle needle_style;
-
+    /* NOT CONFIGURED FROM OPTIONS. */
     /* Updated and initialized as part of drawing. */
     RenderTexture2D static_texture;
     RenderTexture2D needle_texture;
@@ -261,7 +265,7 @@ needle_meter__default__parse_args(widget_t *self)
         fprintf(stderr, "FATAL:  needle_meter cannot have an inner_radius >= its outer_radius.\n");
         return ERR_ARGS;
     }
-    DPRINTLN("inner_radius(%u)", local_params->inner_radius);
+    DPRINTLN("inner_radius(%f)", local_params->inner_radius);
 
     OPTION_OR_DIE("needle_scale");
     local_params->needle_scale = atof(option);

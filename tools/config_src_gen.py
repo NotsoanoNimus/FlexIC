@@ -57,6 +57,7 @@ in_json = f"{sys.argv[1]}"
 # NOTE: DO NOT CHANGE. These names must be synced with CONFIC_C and IC_OPTS_H in the Makefile.
 out_conf = f"{sys.argv[2]}/config.c"
 out_opts = f"{sys.argv[2]}/flex_ic_opts.h"
+out_stub = f"{sys.argv[2]}/flex_ic_opts_impl.c"
 
 print(f"Processing JSON configuration at '{in_json}'...")
 
@@ -65,54 +66,72 @@ with open(in_json, 'r') as in_conf:
 
 print(conf_dict)
 
-with open(out_opts, 'w') as out_h:
+
+with (open(out_opts, 'w') as out_h):
     out_h.write(gen_stub)
+
+    window = conf_dict['window']
+    bg_type = window['background']['type']
+
+    if bg_type.lower() not in ['color', 'asset']:
+        print(f"ERROR: Background type must be either 'COLOR' or 'ASSET' - got {bg_type}.")
+        sys.exit(2)
+
+    bg = window['background'][bg_type.lower()]
+
+    if not bg_type.lower() == 'asset' or not bg['path']:
+        raw_bg_asset = ""
+    else:
+        with open(bg['path'], 'rb') as bg_asset:
+            raw_buff = []
+            nbytes = 1
+            while nbytes != 0:
+                block = bg_asset.read(1024)
+                nbytes = len(block)
+                raw_buff += block
+            raw_bg_asset = "0x" + ", 0x".join(["{:02x}".format(x) for x in raw_buff])
+
+    background_opts = \
+        f"""        .is_gradient = {"true" if bg['is_gradient'] else "false"},
+        .static_color = {rgba_to_struct(bg['static_color'])},
+        {" ".join([f".gradient_{x} = {rgba_to_struct(bg['gradient'][x])}," for x in bg['gradient']])}""" \
+            if bg_type.lower() == 'color' \
+        else \
+            f"""        .image_data = (uint8_t[{len(raw_buff)}]) {{ {raw_bg_asset} }},
+        .image_size = {len(raw_buff)},
+        .file_type = ".{bg['file_type']}",
+        .fit_to_window = {"true" if bg['fit_to_window'] else "false"},
+        .offset_x = {bg['offset_x'] if not bg['fit_to_window'] else 0},
+        .offset_y = {bg['offset_y'] if not bg['fit_to_window'] else 0},
+        .tint = {rgba_to_struct(bg['tint'])}"""
+
     out_h.write(
 f"""
 #ifndef FLEX_IC_OPTS_H
 #define FLEX_IC_OPTS_H
 
+#define IC_CONFIG_TYPES_ONLY
+#include "flex_ic.h"
 
-/* Virtual CAN interface name. */
-#define IC_OPT_CAN_IF_NAME              "{conf_dict['can']['interface_name']}"
+
+/********************************************************************/
+/********************************************************************/
+/********************************************************************/
+/* Types and constants. */
 
 /*
- * Enables O(1) [fast] lookup of message IDs, but requires MUCH higher RAM consumption.
+ * Enables O(1) [fast] lookup of message IDs, but requires much higher RAM consumption.
  *  This option should be set to 0 for systems with reduced RAM where there is a wide
  *  spread of CAN message ID values. When message ID values are highly localized, the
  *  memory consumption difference is negligible.
  */
 #define IC_OPT_ID_MAPPING               {0 if not conf_dict['can']['use_fast_id_mapping'] else 1}
 
-/*
- * Define background gradient colors.
- *  If the background is static (i.e., a non-gradient), use the top-left color value.
- */
-#define IC_OPT_BG_STATIC                {1 if not conf_dict['background']['uses_gradient'] else 0}
-#define IC_OPT_BG_TOP_LEFT_RGBA         {rgba_to_struct(conf_dict['background']['colors']['top_left'])}
-#define IC_OPT_BG_BOTTOM_LEFT_RGBA      {rgba_to_struct(conf_dict['background']['colors']['bottom_left'])}
-#define IC_OPT_BG_TOP_RIGHT_RGBA        {rgba_to_struct(conf_dict['background']['colors']['top_right'])}
-#define IC_OPT_BG_BOTTOM_RIGHT_RGBA     {rgba_to_struct(conf_dict['background']['colors']['bottom_right'])}
-
-/* The FPS limit to use when rendering the IC. */
-#define IC_OPT_FPS_LIMIT                {conf_dict['fps_limit']}
-
-/* Whether to use full-screen mode when rendering (note: ignores SCREEN_WIDTH/HEIGHT). */
-#define IC_OPT_FULL_SCREEN              {0 if not conf_dict['full_screen'] else 1}
-
-/* The title of the GUI window when displayed in a desktop environment. */
-#define IC_OPT_GUI_TITLE                "{conf_dict['window_title']}"
-/* GUI screen width */
-#define IC_OPT_SCREEN_WIDTH             {conf_dict['dimensions']['width']}
-/* GUI screen height */
-#define IC_OPT_SCREEN_HEIGHT            {conf_dict['dimensions']['height']}
-
 /* If set, disables render-time logging, even when IC_DEBUG is on. */
 #define IC_OPT_DISABLE_RENDER_TIME      {0 if not conf_dict['debug']['disable_render_time_reporting'] else 1}
 
 /* If set, disables received CAN message logging, even when IC_DEBUG is on. */
-#define IC_OPT_DISABLE_CAN_DETAILS      {0 if not conf_dict['debug']['disable_can_message_details'] else 1}    
-
+#define IC_OPT_DISABLE_CAN_DETAILS      {0 if not conf_dict['debug']['disable_can_message_details'] else 1}
 
 /*
  * Whether to enable support for CAN FD or Extended (64-byte) data packets.
@@ -126,20 +145,54 @@ f"""
  *  a basic Linux version. BEWARE: you will have to implement all STDLIB calls yourself and
  *  link them to the resulting executable!
  */
-#define IC_OPT_NOSTDLIB                 {0 if conf_dict['use_stdlib'] else 1}
+#define IC_OPT_NOSTDLIB                 {0 if conf_dict['compilation']['use_stdlib'] else 1}
 
-/*
- * Defines the symbol name of a one-time splash screen hook that displays a logo or animation
- *  when the application first starts. This can be defined in its own file under the 'custom'
- *  source directory.
- *
- * The expected function prototype to be used for this is:
- * ```
- * typedef void (*_func__renderer_loading_hook)(const renderer_t *self);
- * ```
- */
-{"#undef IC_OPT_LOADING_HOOK_NAME" if not conf_dict['loading_hook_func_name'] else f"#define IC_OPT_LOADING_HOOK_NAME(x) {conf_dict['loading_hook_func_name']}(x)"}
 
+/********************************************************************/
+/********************************************************************/
+/********************************************************************/
+/* Declarations. */
+
+/* Global configuration details. */
+extern const ic_opts_t compile_time_ic_options;
+
+
+
+/********************************************************************/
+/********************************************************************/
+/********************************************************************/
+/* Definitions. Should only be included into a single translation unit with FLEX_IC_OPTS_IMPL. */
+
+#ifdef FLEX_IC_OPTS_IMPL
+
+const ic_opts_t compile_time_ic_options =
+{{
+    .window = {{
+        .fps_limit = {window['fps_limit']},
+        .dimensions = {{
+            .x = {window['dimensions']['width']},
+            .y = {window['dimensions']['height']}
+        }},
+        .full_screen = {"true" if window['full_screen'] else "false"},
+        .title = "{window['title']}"
+    }},
+    .splash_hook_func = {window['splash_hook_func'] or "NULL"},
+    .num_pages = {window['pages']},
+    .can = {{
+        .interface_name = "{conf_dict['can']['interface_name']}",
+        .enable_fd = {"true" if conf_dict['can']['enable_can_fd'] else "false"}
+    }},
+    .background_type = {bg_type},
+    .background_{bg_type.lower()} = {{
+{background_opts}
+    }},
+}};
+
+#endif   /* FLEX_IC_OPTS_IMPL */
+
+
+
+#undef IC_CONFIG_TYPES_ONLY
 
 #endif   /* FLEX_IC_OPTS_H */
 """
@@ -170,6 +223,16 @@ for widget in conf_dict['widgets']:
 
 with open(out_conf, 'a') as out_c:
     out_c.write(";")
+
+with open(out_stub, 'w') as out_s:
+    out_s.write(gen_stub)
+    out_s.write("""
+
+/* Simply include the options header-only file with its implementation included. */
+#define FLEX_IC_OPTS_IMPL
+#include "flex_ic_opts.h"
+"""
+    )
 
 print("Config source generation complete!\n")
 exit(0)

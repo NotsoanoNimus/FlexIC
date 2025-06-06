@@ -9,24 +9,11 @@
 
 
 
-/* Points and dimensions. */
-typedef
-struct {
-    int32_t x;
-    int32_t y;
-} vec2_t;
-
-
 /* Function prototype declarations for renderer. This allows RAYLIB to be swapped out later as desired. */
 typedef struct renderer renderer_t;
 
 typedef
 ic_err_t (*_func__renderer_init)(
-    const renderer_t *self
-);
-
-typedef
-void (*_func__renderer_loading)(
     const renderer_t *self
 );
 
@@ -39,7 +26,6 @@ void (*_func__renderer_loop)(
 /* Display properties (global). */
 struct renderer {
     _func__renderer_init    init;
-    _func__renderer_loading loading;
     _func__renderer_loop    loop;
 
     vec2_t resolution;
